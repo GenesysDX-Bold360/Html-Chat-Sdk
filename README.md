@@ -1,5 +1,7 @@
 # Html-Chat-Sdk
 
+### What is the BoldChat HTML Chat Window SDK?
+The introduction of an SDK allows business to create and host a fully customizable chat window. The Chat Window SDK is a a collection of html, javascript and css files that serve to communicate with BoldChat's API. These files allow you to create a completely customizable chat user interface that facilitates communication between the visitor and operator. 
 
 ### Here are the general steps needed to get started with the HTML SDK:
 1. download or fork the repository
