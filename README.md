@@ -8,9 +8,11 @@ The introduction of an SDK allows business to create and host a fully customizab
 > Nightshade
 ![nightshadelayout](https://cloud.githubusercontent.com/assets/13420944/8828340/3e18cd4a-3057-11e5-9722-1127475bfbcd.gif)
 
-> Lovato
-
 > Hubris
+![hubrislayout](https://cloud.githubusercontent.com/assets/13420944/8828421/b16ec330-3057-11e5-9e85-4464b1b0ec66.gif)
+
+> Lovato
+![lovatolayout](https://cloud.githubusercontent.com/assets/13420944/8828431/c732a4e8-3057-11e5-9c47-257add6bab8c.gif)
 
 
 
