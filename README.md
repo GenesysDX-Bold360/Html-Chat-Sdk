@@ -5,9 +5,12 @@ The introduction of an SDK allows business to create and host a fully customizab
 
 ### Below are some example screen shots of the various themes we currently have implemented:
 
+> Nightshade
+![nightshadelayout](https://cloud.githubusercontent.com/assets/13420944/8828340/3e18cd4a-3057-11e5-9722-1127475bfbcd.gif)
+
 > Lovato
-![lovato1 fw](https://cloud.githubusercontent.com/assets/13420944/8807787/4ea80fda-2fa4-11e5-985f-cf11e36e3173.png)
-![lovato2 fw](https://cloud.githubusercontent.com/assets/13420944/8807888/ebb25736-2fa4-11e5-8b5b-df5f420303e5.png)
+
+> Hubris
 
 
 
