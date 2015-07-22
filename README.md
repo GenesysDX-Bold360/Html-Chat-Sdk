@@ -4,19 +4,19 @@
 The introduction of an SDK allows business to create and host a fully customizable chat window. The Chat Window SDK is a a collection of html, javascript and css files that serve to communicate with BoldChat's API. These files allow you to create a completely customizable chat user interface that facilitates communication between the visitor and operator. 
 
 ### Below are some example screen shots of the various themes we currently have implemented:
-
-> Nightshade
+> **Nightshade**
 ![nightshadelayout](https://cloud.githubusercontent.com/assets/13420944/8828340/3e18cd4a-3057-11e5-9722-1127475bfbcd.gif)
 
-> Hubris
+
+> **Hubris**
 ![hubrislayout](https://cloud.githubusercontent.com/assets/13420944/8828421/b16ec330-3057-11e5-9e85-4464b1b0ec66.gif)
 
-> Lovato
+
+> **Lovato**
 ![lovatolayout](https://cloud.githubusercontent.com/assets/13420944/8828431/c732a4e8-3057-11e5-9c47-257add6bab8c.gif)
 
 
-
-### Here are the general steps needed to get started with the HTML SDK:
+## How to get started?:
 1. download or fork the repository
 2. modify the bc-config.js (or add a variable in your page) to use your generated api-key
 3. add a reference to 3 key files  on your page
