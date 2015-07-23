@@ -1,35 +1,40 @@
 # Html-Chat-Sdk
 
 ### What is the BoldChat HTML Chat Window SDK?
-The introduction of an SDK allows business to create and host a fully customizable chat window. The Chat Window SDK is a a collection of html, javascript and css files that serve to communicate with BoldChat's API. These files allow you to create a completely customizable chat user interface that facilitates communication between the visitor and operator. 
+The BoldChat HTML SDK allows businesses to create and host a fully customized chat window. The Chat Window SDK is a a collection of html, javascript and css files that communicate with BoldChat's API. These files allow you to create a completely customized chat user interface that facilitates communication between the visitor and operator. 
 
-### Below are some example screen shots of the various themes we currently have implemented:
-> **Nightshade**
-![nightshadelayout](https://cloud.githubusercontent.com/assets/13420944/8828340/3e18cd4a-3057-11e5-9722-1127475bfbcd.gif)
+### Below are some examples of the various themes currently available.
+
+> ####Nightshade####
+![nightshadelayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/NightshadeLayout.png)
+
+----------
+
+> ####Hubris####
+![hubrislayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/HubrisLayout.png)
+
+----------
+
+> ####Lovato####
+![lovatolayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/LovatoLayout.png)
 
 
-> **Hubris**
-![hubrislayout](https://cloud.githubusercontent.com/assets/13420944/8828421/b16ec330-3057-11e5-9e85-4464b1b0ec66.gif)
+## Getting Started:
+1) Clone or download the repository
+2) Generate an API key from the BoldChat client setup.  For more information see [BoldChat Help](http://help.boldchat.com/help/current/BoldChat/c_bc_sdk_android_get_sdk.html)
+3) Modify the scripts/bc-config.js file in the HTML SDK.  Change the sessionApiKey to be the API key you generated in the BoldChat client.
+4) Add 3 javascript tags to your page. 
+```html
+<script type="text/javascript" src="scripts/bc-util.js"></script>
+<script type="text/javascript" src="scripts/bc-config.js"></script>
+<script type="text/javascript" src="scripts/bc-sdk-start.js"></script>
+```
+5) If you do not already have a BoldChat button on your page you will need to generate and add the html snippet to add the button. Please see the [boldchat help docs](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
 
+----------
 
-> **Lovato**
-![lovatolayout](https://cloud.githubusercontent.com/assets/13420944/8828431/c732a4e8-3057-11e5-9c47-257add6bab8c.gif)
-
-
-## How to get started?:
-1. download or fork the repository
-2. modify the bc-config.js (or add a variable in your page) to use your generated api-key
-3. add a reference to 3 key files  on your page
-4. ensure that you have valid VMS and at least one of the following snippets on your page:
-If you do not know how to generate the appropriate html, please see the [boldchat help docs](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
-  a. floating button
-  b. static chat button
-  c. invitation
-
-*** 
-
-> What does this repository contain?
+###What does this repository contain###
 
 This repository contains BoldChat's SDK. This SDK is a collection of html, javascript and css files. 
 These javascript files serve to communicate with BoldChat's API to 
-The repository contains a zip file which contains two versions of each theme included. One version is the non-minified and non-compressed version of the sdk. 
+The repository contains a zip file which contains two versions of each theme included. One version is the non-minified and non-compressed version of the sdk.  
