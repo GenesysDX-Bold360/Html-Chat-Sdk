@@ -20,13 +20,13 @@ The BoldChat HTML SDK allows businesses to create and host a fully customized ch
 
 
 ## Getting Started:
-1) Clone or download the repository
+1) Clone or download this repository and add it to your web site.
 
 2) Generate an API key from the BoldChat client setup.  For more information see [BoldChat Help](http://help.boldchat.com/help/current/BoldChat/c_bc_sdk_android_get_sdk.html)
 
 3) Modify the scripts/bc-config.js file in the HTML SDK.  Change the sessionApiKey to be the API key you generated in the BoldChat client.
 
-4) Add 3 javascript tags to your page. 
+4) Add 3 javascript tags to your page.
 ```html
 <script type="text/javascript" src="scripts/bc-util.js"></script>
 <script type="text/javascript" src="scripts/bc-config.js"></script>
@@ -34,6 +34,8 @@ The BoldChat HTML SDK allows businesses to create and host a fully customized ch
 ```
 
 5) If you do not already have a BoldChat button on your page you will need to generate and add the html snippet to add the button. For detailed instructions on chat button setup please see [BoldChat Help docs](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
+
+6) When the BoldChat button or invitation is clicked the HTML SDK will be launched instead of the default BoldChat window.
 
 
 ##Changing Themes##
