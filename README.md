@@ -33,7 +33,7 @@ The BoldChat HTML SDK allows businesses to create and host a fully customized ch
 <script type="text/javascript" src="scripts/bc-sdk-start.js"></script>
 ```
 
-5) If you do not already have a BoldChat button on your page you will need to generate and add the html snippet to add the button. Please see the [boldchat help docs](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
+5) If you do not already have a BoldChat button on your page you will need to generate and add the html snippet to add the button. For detailed instructions on chat button setup please see [BoldChat Help docs](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
 
 
 ##Changing Themes##
