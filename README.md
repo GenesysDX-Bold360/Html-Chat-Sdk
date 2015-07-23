@@ -35,13 +35,11 @@ The BoldChat HTML SDK allows businesses to create and host a fully customized ch
 
 5) If you do not already have a BoldChat button on your page you will need to generate and add the html snippet to add the button. Please see the [boldchat help docs](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
 
-----------
 
 ##Changing Themes##
 
 To change the theme your chat window is using modify scripts/bc-config.js.  The themes variable is defined as the chatWindowUrl variable. Change this value to the theme path of your choice, for instance "themes/hubris".
 
-----------
 
 ###What does this repository contain###
 
