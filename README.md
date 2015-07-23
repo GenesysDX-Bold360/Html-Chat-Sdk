@@ -37,6 +37,12 @@ The BoldChat HTML SDK allows businesses to create and host a fully customized ch
 
 ----------
 
+##Changing Themes##
+
+To change the theme your chat window is using modify scripts/bc-config.js.  The themes variable is defined as the chatWindowUrl variable. Change this value to the theme path of your choice, for instance "themes/hubris".
+
+----------
+
 ###What does this repository contain###
 
 This repository contains BoldChat's SDK. This SDK is a collection of html, javascript and css files. 
