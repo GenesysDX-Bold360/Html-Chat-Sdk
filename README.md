@@ -47,6 +47,6 @@ To change the theme your chat window is using modify scripts/bc-config.js.  The 
 
 This repository contains BoldChat's SDK which is a collection of html, javascript and css files. 
 These javascript files serve to communicate with BoldChat's API to facilitate chat interactions between operator and visitor.
-The repository contains a zip file which contains two versions of each theme included. One version is the non-minified and non-compressed version of the sdk. The html files reference raw javascript and css files. The second version is the production ready, minified and compressed versions of the files. Whereas the html files are both minified as well as referencing the compressed, minified and consolidated versions of the javascript and css files.
+The repository contains a zip file which contains two versions of each theme included. One version is the non-minified and non-compressed version of the sdk. These html files reference raw javascript and css files. The second version is the production ready, minified and compressed versions of the files. Whereas these html files are both minified as well as referencing the compressed, minified and consolidated versions of the javascript and css files.
 
 
