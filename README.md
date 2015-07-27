@@ -72,16 +72,25 @@ npm install && gulp
 ```
 ####There are various gulp build options:
 
- - build-requirements :
-	 - fonts : copies all the fonts files to their respective place in the output directory
-	 - images : optimizes and copies all the images to their respective place in the output directory
-	 - videos : copies all the videos to their respective place in the output directory
-	 - sass : processes all the scss files to generate the appropriate css in their respective theme in the output directory
- - minify-all-js : optionally minifies, uglifies and concatenates the javascript files according to their usage and outputs to their respective location 
-	 - minify-theme-js : Theme js files are optional files which serve to override existing functionality. 
-	 - minify-boldchat-js : Boldchat js files are the core html sdk files. These are files that are used equally by the popup and layered windows. 
-	 - minify-start-js : The start js files are the files you drop onto your existing page where you want to use the html sdk chat window. 
-	 - minify-popup-js : These files are used exclusively on the popup window. They include the minify-start-js files but also include an additional popup file.
- - html-process-only : The index files
-	 - inject-index-html : 
-	 - inject-popup-html : 
+ - **build-requirements** :
+	 - **fonts** : copies all the fonts files to their respective place in the output directory
+	 - **images** : optimizes and copies all the images to their respective place in the output directory
+	 - **videos** : copies all the videos to their respective place in the output directory
+	 - **sass** : processes all the scss files to generate the appropriate css in their respective theme in the output directory
+	 - **minify-all-js** : see below
+ - **minify-all-js** : depending on build arguments, could minify, uglify and concatenates the javascript files according to their usage and outputs to their respective location 
+	 - **minify-theme-js** : Theme js files are optional files which serve to override existing functionality. 
+	 - **minify-boldchat-js** : Boldchat js files are the core html sdk files. These are files that are used equally by the popup and layered windows. 
+	 - **minify-start-js** : The start js files are the files you drop onto your existing page where you want to use the html sdk chat window. These files include the utility functions used by the other files, the configuration files and a start-sdk file that handles the opening of the windows themselves.
+	 - **minify-popup-js** : These files are used exclusively on the popup window. They include the minify-start-js files but also include an additional necessary popup file.
+ - **html-process-only** : Our gulp process uses gulp-inject as a means to build the appropriate output files. Each theme can be opened in either a layered or popup window mode. To prevent duplication of effort on developments part, the popup.html files (under each theme) are created at build time. The 'template' for each popup is the index.html file under each theme. For example, building html-process-only would take the themes/hubris/index.html file and extract the html to build the themes/hubris/popup.html file. 
+	 - **inject-index-html** : depending the build arguments, would inject the necessary js & css files in their appropriate tag placeholders
+	 - **inject-popup-html** : depending the build arguments, would inject the necessary js & css files in their appropriate tag placeholders; copies index html and inserts into appropriate place in popup.html
+ - Running the default gulp task will run 'build-requirements', 'html-process-only' and finally 'js-doc'. 
+	 - js-doc creates a help document from the javascript files
+
+####There are various gulp arguments you can pass into the gulp build process:
+- **--verbose** : print out the files affected by each task
+- **--prod** : create concatenated versions of the js/css files and have the html reference those files
+- **--min** : used in conjuction with the --prod argument to further minify those js/css files and have the html reference accordingly
+- **--minhtml** : minifies the html
