@@ -92,5 +92,28 @@ npm install && gulp
 ####There are various gulp arguments you can pass into the gulp build process:
 - **--verbose** : print out the files affected by each task
 - **--prod** : create concatenated versions of the js/css files and have the html reference those files
+	- ex. in the index.html page, there is are various comment tags used by the build process such as:
+		- `<!-- inject:boldchat:js -->`
+		- When in the html build processes (inject-index and inject-popup), the build process looks to see if the arg, --prod, was passed in. If so, getBoldchatJsSource function retrieves the source files (js_bc) and uses those files as the gulp source to finally build a final concatenated file named boldchat.js. So, instead of 9 js files, it would only be 1 js file.
 - **--min** : used in conjuction with the --prod argument to further minify those js/css files and have the html reference accordingly
 - **--minhtml** : minifies the html
+
+
+## Additional Info:
+
+#### Technically Speaking..
+
+ - There is a bc-config.js file which sets all the configuration related information. However, it is also possible to override these settings on each of your pages. For instance, you may desire a completely different apikey/theme/layered vs popup on different pages. This is easily accomplished:
+```javascript
+<script type="text/javascript">
+	window._bcChatWindowUrl = 'themes/{theme name here}';
+	window._bcSessionApiKey = '{your api key here}';
+	window._bcForcePopup = false; 
+</script>
+```
+Simply add the above code for each page that you want to be different from the bc-config options.
+Alternatively, you could have a different bc-config for each page as well. There are many ways to accomplish this.
+* *One note, you should place the above code before your bc-config.js file.*
+
+##### Layered vs Popup 
+There is a certain hierarchy associated with how a window will be opened. Window definitions come from the chat api key. 
