@@ -6,17 +6,17 @@ The BoldChat HTML SDK allows businesses to create and host a fully customized ch
 ### Below are some examples of the various themes currently available:
 
 > ####Nightshade####
-![nightshadelayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/NightshadeLayout.png)
+![nightshadelayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/NightshadeLayout.jpg)
 
 ----------
 
 > ####Hubris####
-![hubrislayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/HubrisLayout.png)
+![hubrislayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/HubrisLayout.gif)
 
 ----------
 
 > ####Lovato####
-![lovatolayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/LovatoLayout.png)
+![lovatolayout](http://logmein-boldchat.github.io/Html-Chat-Sdk/LovatoLayout.gif)
 
 
 ## Getting Started:
