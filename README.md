@@ -122,10 +122,10 @@ As an alternative method, you can also set up a different bc-config file for eac
 ##### Layered vs Popup Windows
 There is a certain hierarchy associated with how a window is opened. Window Definitions are determined by the API Key. Learn more about the Chat Window Definition on [our help site](http://help.boldchat.com/help/BoldChat/c_bc_chatwindow_about.html).
 
-##### Javascript Files
+##### Important Javascript Files
 ![diagram](http://logmein-boldchat.github.io/Html-Chat-Sdk/sdk-diagram.png)
  - **bc-sdk-start.js** - The main starting point for the HTML SDK.  When included in your page this javascript will register itself with your BoldChat button or invitation, and when clicked will initiate the launch of your customized HTML chat window.  It injects the theme's html into the web page, and loads any javascript files included in the theme's html.
- - **bc-session.js** - Maintains the high-level state of an active chat session.  This file does not directly manipulate the DOM, but instead facilities the communication between the view manager (bc-view-manager.js) and the lower level server communication (bc-client).
+ - **bc-session.js** - Maintains the high-level state of an active chat session.  This file does not directly manipulate the DOM, but instead facilities the communication between the view manager (bc-view-manager) and the lower level server communication (bc-client).
  - **bc-view-manager.js** - When bc-session wants to change something visible such as showing a form, showing a busy indicator, or adding a chat message bc-view-manager is called to perform the DOM update. When customizing look and behavior of your chat window this is the file you will most likely be changing.
  - **bc-localizer.js** - Controls the localization of the chat window.  When a user selects a different language in the pre-chat form the localizer will receive the new localization keys, and update the view.  Elements with attributes "data-l10n" will be considered for localization.
  - **bc-form-builder.js** - Pre and Post chat forms are not defined in the theme's html, instead they come from the BoldChat servers as defined in the chat window definition in your account settings.  This form builder takes these form definitions and creates an HTML form based on the definition.
