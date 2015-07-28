@@ -134,5 +134,18 @@ There is a certain hierarchy associated with how a window is opened. Window Defi
  - **bc-storage.js** - When a user transitions to a new page while in an active chat session it is critical that the re-constition of the chat window be done as fast as possible.  To re-create the chat window as fast as possible some key information is stored in session storage.  This javascript is used to store and retrieve this information.  The use of session storage can be disabled in bc-config.js.
 
 ##### Description of HTML Components
+The index.html files in the themes is what gets injected into the host page when a chat is launched.  This file contains the structure for the chat window, and the css files (compiled from scss) apply the styling for the chat window. There are important elements within this chat window HTML which are used by the bc-view-manager javascript. Visibility of the html elements described below is typically controlled by adding or removing a .bc-hidden class. Some of the more important elements are:
+ - **#bc-chat** - The outermost container for a visible chat window, this will be hidden or shown depending on chat state.
+ - **.bc-busy** - A container for indicating the chat is busy such as when submitting a pre-chat form.
+ - **#bc-minimized-indicator** - The container shown when a chat has been minimized.
+ - **#bc-msg-op-template** - The template element for operator messages.  This element gets copied and added to the #bc-chat-history container when a new operator message arrives.
+ - **#bc-msg-vis-template** - The template element for visitor messages.  This element gets copied and added to the #bc-chat-history container when a new visitor message is sent.
+ - **#bc-msg-sys-template** - Some messages are sent by the BoldChat system (non-human). When one of these messages arrives this element is copied and added to the #bc-chat-history container.
+ - **#bc-status-msg** - This element isn't a template but will be shown or hidden when a status message needs to be shown to the user. 
+ - **#bc-form-container** - This container will be emptied and a dynamically generated HTML form will be added to it by bc-form-builder.
+ - **#bc-typing** - This container will be hidden or shown depending on the typing status of an operator.  If a #bc-typers element exists the name of the typers will be put inside it.
+ - **#bc-queue-wrap** - If the chat is in a queue then this element will be shown.
+ - **#bc-send-msg-text** - This should be an input field or textarea where messages will be input.
+ - **#bc-send-msg-btn** - This should be a button or anchor for sending a message in the #bc-send-msg-text field.
 
 ##### Recipe for 3rd party post-chat survey
