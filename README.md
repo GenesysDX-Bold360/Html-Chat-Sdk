@@ -47,14 +47,16 @@ The zip file in this repository contains two versions of each included theme:
 <script type="text/javascript" src="scripts/bc-sdk-start.js"></script>
 ```
 
-5) If you do not already have a BoldChat button on your page, you must generate one in the BoldChat client and add the HTML snippet to your web site. For detailed instructions on chat button setup please see [BoldChat Help](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
+5) Define which theme you want to use
+```html
+<script type="text/javascript">
+    window._bcChatWindowUrl = 'themes/nightshade';
+</script>
+```
 
-6) When the BoldChat button or invitation is clicked, the HTML SDK will be launched instead of the default BoldChat window.
+6) If you do not already have a BoldChat button on your page, you must generate one in the BoldChat client and add the HTML snippet to your web site. For detailed instructions on chat button setup please see [BoldChat Help](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
 
-
-## Changing Themes
-
-Modify scripts/bc-config.js to change the theme of your chat window. The chatWindowUrl variable defines the theme used. Change the value to the theme path of your choice, for instance "themes/hubris".
+7) When the BoldChat button or invitation is clicked, the HTML SDK will be launched instead of the default BoldChat window.
 
 ## Building from source
 
