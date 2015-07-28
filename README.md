@@ -69,7 +69,7 @@ The package.json file contains a scripts object that provides various build opti
 ```javascript
 npm run build
 ```
-All this is really doing is:
+This is the equivalent of running:
 ```javascript
 npm install && gulp
 ```
