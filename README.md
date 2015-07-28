@@ -34,7 +34,7 @@ The zip file in this repository contains two versions of each included theme:
  5. Android (current and previous version)
 
 ## Getting Started
-1) Clone or download this repository and add it to your web site.
+1) Download one of the theme zip files and add it to your web site. Alternatively you could clone or download this repository.
 
 2) Generate an API key in the Boldhat Client. For more information see [BoldChat Help](http://help.boldchat.com/help/BoldChat/c_bc_sdk_get_sdk.html)
 
