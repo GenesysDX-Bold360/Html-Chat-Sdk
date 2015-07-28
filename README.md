@@ -148,4 +148,34 @@ The index.html files in the themes is what gets injected into the host page when
  - **#bc-send-msg-text** - This should be an input field or textarea where messages will be input.
  - **#bc-send-msg-btn** - This should be a button or anchor for sending a message in the #bc-send-msg-text field.
 
-##### Recipe for 3rd party post-chat survey
+##### Example Customization: 3rd Party Survey
+In this example customization we want to embed a 3rd party survey (e.g. surveymonkey or surveygizmo) instead of the BoldChat post-chat survey. The example survey will be embedded in an iframe, but could just as easily be fully customized html that submits to your own servers.
+
+One way we oculd accomplish this would be to directly modify bc-session, and instead of showing a post-chat survey when a chat ends instead show the 3rd party survey.  
+
+Another way to accomplish this would be to create a bc.setOverrides function, which allows for overriding of any methods in bc-session, bc-view-manager, or bc-form-builder.  Since any method can be overriden we will override the post-chat survey with our own survey.
+
+```javascript
+// Ensure the bc object is created to prevent loading order problems
+var bc = window.bc || {};
+
+// When this method is defined it will be called at the point the chat is created.
+bc.setOverrides = function() {
+	// Save a copy of the original showForm method.
+	var originalShowForm = bc.currentSession.viewManager.showForm;
+
+	// Define a new version of the showForm method
+	bc.currentSession.viewManager.showForm = function(introLocKey, formDef, invalidFormLocKey, submitLocKey, submitCallback, topField, topFieldLocKey, clearContainer) {
+		// If the chat has ended and it's time to show a post-chat survey add an iframe to the chat history area with the embedded survey.
+		if(introLocKey === 'api#postchat#intro' || introLocKey === 'api#chat#ended') {
+			var thirdPartyIframe = bc.util.createElement('iframe', {src: 'http://boldchat.com', width: '200', height: '200'});
+			var chatHistory = document.getElementById('bc-chat-history');
+			chatHistory.appendChild(thirdPartyIframe);
+			bc.currentSession.viewManager.scrollToBottom();
+		} else {
+			// If another form needs to be shown call the original showForm method.
+			originalShowForm(introLocKey, formDef, invalidFormLocKey, submitLocKey, submitCallback, topField, topFieldLocKey, clearContainer);
+		}
+	};
+};
+```
