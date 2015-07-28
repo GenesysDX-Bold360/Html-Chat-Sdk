@@ -40,18 +40,18 @@ The zip file in this repository contains two versions of each included theme:
 
 3) Modify the scripts/bc-config.js file in the HTML SDK. Change the sessionApiKey value to the API key you generated in the BoldChat client.
 
-4) Add 3 javascript tags to your page.
-```html
-<script type="text/javascript" src="scripts/bc-util.js"></script>
-<script type="text/javascript" src="scripts/bc-config.js"></script>
-<script type="text/javascript" src="scripts/bc-sdk-start.js"></script>
-```
-
-5) Define which theme you want to use
+4) Define which theme you want to use.
 ```html
 <script type="text/javascript">
     window._bcChatWindowUrl = 'themes/nightshade';
 </script>
+```
+
+5) Add 3 javascript tags to your page.
+```html
+<script type="text/javascript" src="scripts/bc-util.js"></script>
+<script type="text/javascript" src="scripts/bc-config.js"></script>
+<script type="text/javascript" src="scripts/bc-sdk-start.js"></script>
 ```
 
 6) If you do not already have a BoldChat button on your page, you must generate one in the BoldChat client and add the HTML snippet to your web site. For detailed instructions on chat button setup please see [BoldChat Help](http://help.boldchat.com/help/current/BoldChat/c_bc_setupguide_header.html).
