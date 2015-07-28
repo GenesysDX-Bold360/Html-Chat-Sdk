@@ -47,7 +47,7 @@ The zip file in this repository contains two versions of each included theme:
 </script>
 ```
 
-5) Add 3 javascript tags to your page.
+5) Add 3 javascript files to your page.
 ```html
 <script type="text/javascript" src="scripts/bc-util.js"></script>
 <script type="text/javascript" src="scripts/bc-config.js"></script>
