@@ -36,7 +36,7 @@ The zip file in this repository contains two versions of each included theme:
 ## Getting Started
 1) Download one of the theme zip files and add it to your web site. Alternatively you could clone or download this repository.
 
-2) Generate an API key in the Boldhat Client. For more information see [BoldChat Help](http://help.boldchat.com/help/BoldChat/c_bc_sdk_get_sdk.html)
+2) Generate an API key in the Boldchat Client. For more information see [BoldChat Help](http://help.boldchat.com/help/BoldChat/c_bc_sdk_get_sdk.html)
 
 3) Modify the scripts/bc-config.js file in the HTML SDK. Change the sessionApiKey value to the API key you generated in the BoldChat client.
 
