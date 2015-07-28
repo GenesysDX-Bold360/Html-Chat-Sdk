@@ -151,7 +151,7 @@ The index.html files in the themes is what gets injected into the host page when
 ##### Example Customization: 3rd Party Survey
 In this example customization we want to embed a 3rd party survey (e.g. surveymonkey or surveygizmo) instead of the BoldChat post-chat survey. The example survey will be embedded in an iframe, but could just as easily be fully customized html that submits to your own servers.
 
-One way we oculd accomplish this would be to directly modify bc-session, and instead of showing a post-chat survey when a chat ends instead show the 3rd party survey.  
+One way you could accomplish this would be to directly modify bc-session, and instead of showing a post-chat survey when a chat ends instead show the 3rd party survey.  
 
 Another way to accomplish this would be to create a bc.setOverrides function, which allows for overriding of any methods in bc-session, bc-view-manager, or bc-form-builder.  Since any method can be overriden we will override the post-chat survey with our own survey.
 
