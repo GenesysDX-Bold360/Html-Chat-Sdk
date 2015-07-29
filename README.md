@@ -123,6 +123,14 @@ As an alternative method, you can also set up a different bc-config file for eac
 
 ##### Layered vs Popup Windows
 There is a certain hierarchy associated with how a window is opened. Window Definitions are determined by the API Key. Learn more about the Chat Window Definition on [our help site](http://help.boldchat.com/help/BoldChat/c_bc_chatwindow_about.html).
+If you have defined a window to the api key, then the window definition (the pre and post chat fields, for example) comes from that defined window. If, however, you don't have one associated to the API key, the window definition will be the default window for you site. 
+This is for all fields defined, WITH THE EXECEPTION of the layered/popup definition. The layered/popup is defined via whatever button the visitor has invoked. i.e. the floating button, static chat button and/or the invitation on the page. 
+However, you can also force for how the window will be opened directly on the page by adding this to your script:
+```html
+<script type="text/javascript">
+    window._bcForcePopup = false; <- you can force popup vs layered by setting this to true or false
+</script>
+```
 
 ##### Important Javascript Files
 ![diagram](http://logmein-boldchat.github.io/Html-Chat-Sdk/sdk-diagram.png)
