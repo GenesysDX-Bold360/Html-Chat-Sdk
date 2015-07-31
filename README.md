@@ -182,7 +182,6 @@ bc.setOverrides = function() {
 			var thirdPartyIframe = bc.util.createElement('iframe', {src: 'https://www.surveymonkey.com/s/HL2XLGC', width: '90%', height: '550px'});
 			var chatHistory = document.getElementById('bc-chat-history');
 			chatHistory.appendChild(thirdPartyIframe);
-			bc.currentSession.viewManager.scrollToBottom();
 		} else {
 			// If another form needs to be shown call the original showForm method.
 			originalShowForm(introLocKey, formDef, invalidFormLocKey, submitLocKey, submitCallback, topField, topFieldLocKey, clearContainer);
