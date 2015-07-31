@@ -179,7 +179,7 @@ bc.setOverrides = function() {
 	bc.currentSession.viewManager.showForm = function(introLocKey, formDef, invalidFormLocKey, submitLocKey, submitCallback, topField, topFieldLocKey, clearContainer) {
 		// If the chat has ended and it's time to show a post-chat survey add an iframe to the chat history area with the embedded survey.
 		if(introLocKey === 'api#postchat#intro' || introLocKey === 'api#chat#ended') {
-			var thirdPartyIframe = bc.util.createElement('iframe', {src: 'http://boldchat.com', width: '200', height: '200'});
+			var thirdPartyIframe = bc.util.createElement('iframe', {src: 'https://www.surveymonkey.com/s/HL2XLGC', width: '90%', height: '550px'});
 			var chatHistory = document.getElementById('bc-chat-history');
 			chatHistory.appendChild(thirdPartyIframe);
 			bc.currentSession.viewManager.scrollToBottom();
