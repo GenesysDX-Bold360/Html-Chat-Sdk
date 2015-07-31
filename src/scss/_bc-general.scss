@@ -1,0 +1,43 @@
+.bc-clear {
+    clear: both;
+    height: 0;
+}
+
+.bc-boldchat-logo {
+    float: right;
+    margin-right: 10px;
+
+    width: 103px;
+    height: 12px;
+    background-image: url('../../images/bc-logo.gif');
+    background-size: 103px 12px;
+}
+
+.bc-mar-right {
+    margin-right: 3px;
+}
+
+.bc-center {
+    text-align: center;
+}
+
+.bc-vert-bottom {
+    vertical-align: bottom;
+}
+
+.bc-error {
+    color: $bc-color-error;
+}
+
+.bc-bold {
+    font-weight: bold;
+}
+
+.bc-hide {
+    display: none;
+    visibility: hidden;
+}
+
+.height0 {
+    height: 0;
+}

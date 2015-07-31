@@ -1,0 +1,10 @@
+@import "mixins";
+
+.bc-hidden {
+  display: none !important;
+}
+
+.bc-fade-visible {
+  @include bc-transition(opacity .5s ease-in-out);
+  opacity: 1 !important;
+}

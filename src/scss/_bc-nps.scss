@@ -1,0 +1,64 @@
+.bc-help-message {
+    margin: 0 0 20px 0;
+    max-height: 10000em;
+    text-align: center;
+    -webkit-text-size-adjust: 100%;
+    @include bc-box-sizing(border-box);
+}
+
+.bc-nps-interface {
+    width: 100%;
+}
+
+.bc-nps-header {
+    font-weight: bold;
+}
+
+.bc-nps-message-left {
+    width: 105px;
+    float: left;
+    margin: 0;
+}
+
+.bc-nps-message-right {
+    width: 105px;
+    text-align: right;
+    float: right;
+    margin: 0;
+}
+
+.bc-nps-radios {
+    text-align: center;
+}
+
+.bc-unchecked-radio {
+    background: $bravo;
+    color: $echo;
+}
+
+.bc-checked-radio {
+    background: $alfa;
+    color: $bravo;
+}
+.bc-radio-container:hover {
+    outline: $delta solid thin;
+}
+
+.bc-radio-container {
+    height: 23px;
+    line-height: 21px;
+    margin: 0.5%;
+    padding: 0;
+    float: left;
+    width: 8%;
+    cursor: pointer;
+    @include bc-box-sizing;
+}
+
+#rad0 {
+    margin-left: 0;
+}
+
+#rad10 {
+    margin-right: 0;
+}
