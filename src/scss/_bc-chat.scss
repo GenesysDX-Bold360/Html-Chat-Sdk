@@ -1,0 +1,71 @@
+#bc-layered-chat,
+#bc-popup-chat {
+    height: 100%;
+    position: fixed;
+    z-index: 1000001;
+    margin: auto;
+    padding: 0;
+    background-color: $echo;
+    color: $alfa;
+    font-size: 16px;
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+    @include bc-box-sizing;
+
+    textarea {
+        resize: none;
+    }
+}
+
+#bc-popup-chat {
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+#bc-layered-chat {
+    right: 0;
+    bottom: 0;
+    width: 350px;
+    max-height: 500px;
+    @include bc-transition(height ease-in-out .5s);
+
+    @media (max-width: $small-screen) {
+        left: 0;
+        width: auto;
+        height: 100%;
+        max-height: 100vh;
+    }
+}
+
+#bc-chat {
+    line-height: initial;
+    text-align: left;
+}
+
+/* necessary to hide existing floating button on page */
+.bc-hide-buttons,
+div[name="bt_invite_box"],
+div[name="bc-invite-box"],
+div.bcStatic,
+div.bcFloat {
+    opacity: 0 !important;
+    display: none !important;
+}
+
+#bc-chat-history {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    padding: 20px 10px;
+    overflow-y: scroll;
+}
+
+#bc-queue-wrap {
+    position: absolute;
+    margin-top: -18px;
+    font-size: .75em;
+}
+

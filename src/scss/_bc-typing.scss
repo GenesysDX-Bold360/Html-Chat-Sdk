@@ -1,0 +1,51 @@
+#bc-typing {
+    position: absolute;
+    bottom: 0;
+    left: 5px;
+    clear: both;
+}
+
+#bc-typing-msg {
+    vertical-align: middle;
+    font-size: .75em;
+}
+
+.bc-typing-avatar {
+    width: 20px;
+    height: 20px;
+    border: 1px solid $echo;
+    margin: 0 3px -5px 0;
+    @include bc-border-radius(50%);
+}
+
+.bc-typing-name {
+    margin-right: 3px;
+}
+
+.bc-type-one {
+    opacity: 1;
+    @include bc-animation(bc-type 1.3s infinite);
+}
+
+.bc-type-two {
+    opacity: 1;
+    @include bc-animation(bc-type 1.3s infinite 0.2s);
+}
+
+.bc-type-three {
+    opacity: 1;
+    @include bc-animation(bc-type 1.3s infinite 0.3s);
+}
+
+@-webkit-keyframes bc-type {
+    0% { opacity: 0; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes bc-type {
+    0% { opacity: 0; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+

@@ -1,0 +1,46 @@
+@import "../../scss/color-constants";
+
+div.bc-input-container {
+    padding-top: 3px;
+    padding-bottom: 10px;
+    width: 100%;
+    margin: 0;
+}
+
+.bc-input-container.bc-form-intro {
+    width: 80%;
+    float: right;
+}
+
+div.bc-action-input-container {
+    text-align: right;
+    padding-top: 20px;
+}
+
+.bc-validator {
+    background-color: $bc-color-error;
+    color: $bravo;
+    border-radius: 0;
+    padding: 7px;
+    margin: 7px 0;
+    clear: both;
+}
+
+.bc-validator span {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 7px;
+}
+
+.bc-input-label {
+    margin-right: auto;
+    @include bc-box-sizing(border-box);
+}
+
+.bc-invalid {
+    select,
+    input + label,
+    textarea + label {
+        color: $bc-color-error !important;
+    }
+}
