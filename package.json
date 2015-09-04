@@ -39,6 +39,7 @@
     "karma-jasmine": "^0.3.5",
     "karma-safari-launcher": "^0.1.1",
     "local-web-server": "^0.5.18",
+    "remove-empty-directories": "0.0.1",
     "selenium": "^2.20.0",
     "yargs": "^3.10.0"
   },
@@ -50,6 +51,7 @@
     "test": "npm install && gulp test",
     "integration": "npm install && gulp integration",
     "sass": "gulp sass",
-    "zips": "gulp --prod --min --minhtml && gulp zip-files --prod --min --minhtml && gulp && gulp zip-files"
+    "zips": "gulp --prod --min --minhtml && gulp zip-files --prod --min --minhtml && gulp && gulp zip-files",
+    "create-final-build": "npm run zips && gulp clean-build-files && gulp create-final-build"
   }
 }

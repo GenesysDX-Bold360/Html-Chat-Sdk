@@ -120,7 +120,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 	};
 
 	var displayWaitForOperatorMessage = function() {
-		if(!scope.client.chatContainsOpMessage) {
+		if(!scope.client.chatContainsStatusMessage) {
 			var waitForOpMsg = null;
 			if(queuePosition !== 0) {
 				waitForOpMsg = scope.viewManager.getLocalizedValue('api#chat#operators_busy');
@@ -385,7 +385,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 	this._addMessage = function(data) {
 		var avatar = data.Values.ImageURL || scope.client.getPerson(data.Values.PersonID).Avatar;
 		var name = data.Values.Name || scope.client.getPerson(data.Values.PersonID).Name || scope.getOperatorName();
-		scope.viewManager.addOrUpdateMessage(data.MessageID, data.Values.PersonType, name, new Date(data.Values.Created), data.Values.Text, avatar, data.Values);
+		scope.viewManager.addOrUpdateMessage(data.MessageID, data.Values.PersonType, name, new Date(data.Values.Created), data.Values.Text, avatar, data.Values.IsReconstitutedMsg, data.Values.OriginalText);
 	};
 
 	/**
@@ -394,6 +394,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 	 * @private
 	 */
 	this._autoMessage = function(data) {
+		scope.client.chatContainsStatusMessage = true;
 		scope.viewManager.showStatusMessage(data.Text);
 	};
 
@@ -409,7 +410,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 		} else if(data && data.Position && data.Position > 0) {
 			scope.viewManager.showOrUpdateQueueMessage(data.Position, data.UnavailableFormEnabled);
 		}
-		displayWaitForOperatorMessage();	//this get's fired after the operator message is received so this could be problematic (see both the op and busy msg)
+		displayWaitForOperatorMessage();
 	};
 
 	/**

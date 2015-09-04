@@ -240,10 +240,10 @@ bc.openChat = function(chatParams, visitInfo) {
 	// TODO: remove random parameter, so local caching works
 	if(!window.bcChatOpen) {
 		if(!bc.config.forcePopup) {
-			fetchWindow(bc.config.chatWindowUrl + '?t=' + Math.random(), showChatWindow);
+			fetchWindow(bc.config.chatWindowUrl, showChatWindow);
 		} else {
 			if(!bc.util.readCookie(bc.config.chatCookie) && !bc.util.readCookie(bc.config.configCookie)) {
-				openPopupWindow(bc.config.chatWindowUrl + '/popup.html?t=' + Math.random());
+				openPopupWindow(bc.config.chatWindowUrl + '/popup.html');
 			} else {
 				bc.startSession(chatParams, visitInfo, null);
 			}

@@ -44,3 +44,11 @@ div.bc-action-input-container {
         color: $bc-color-error !important;
     }
 }
+
+#bc-chat a {
+    color: $bravo;
+}
+
+#bc-chat a:hover {
+    text-decoration: none;
+}

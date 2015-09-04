@@ -151,7 +151,7 @@ bc.VisitorClient = function(auth) {
 		return apiFrame.call(method, obj);
 	};
 
-	var onstart = function(client) {
+	var onStart = function(client) {
 		bc.util.createCookie(bc.config.chatCookie, chatKey, 0.08);
 
 		clientID = client.ClientID;
@@ -163,7 +163,7 @@ bc.VisitorClient = function(auth) {
 		}
 	};
 
-	var onfinish = function() {
+	var onFinish = function() {
 		apiFrame.call('disconnect', {});
 
 		activeAssistID = null;
@@ -172,7 +172,7 @@ bc.VisitorClient = function(auth) {
 		scope.fireEvent('closed');
 	};
 
-	var onfailure = function(message) {
+	var onFailure = function(message) {
 		bc.util.log(message);
 	};
 
@@ -224,10 +224,10 @@ bc.VisitorClient = function(auth) {
 		});
 	};
 
-	scope.chatContainsOpMessage = false;
+	scope.chatContainsStatusMessage = false;
 	var updateOperatorMessageFlag = function(data) {
-		if(!scope.chatContainsOpMessage && data.PersonType && data.PersonType === 'operator') {
-			scope.chatContainsOpMessage = true;
+		if(!scope.chatContainsStatusMessage && data.PersonType && data.PersonType === 'operator') {
+			scope.chatContainsStatusMessage = true;
 		}
 	};
 
@@ -313,7 +313,7 @@ bc.VisitorClient = function(auth) {
 
 	scope.getChatAvailability = function(visitorId) {
 		return call('getChatAvailability', {VisitorId: visitorId || null})
-			.failure(onfailure);
+			.failure(onFailure);
 	};
 
 	scope.createChat = function(visitorID, language, skipPreChat, data, secured, button, url, customUrl) {
@@ -332,7 +332,7 @@ bc.VisitorClient = function(auth) {
 			ChatUrl: url,
 			CustomUrl: customUrl
 		})
-			.failure(onfailure)
+			.failure(onFailure)
 			.success(function(result) {
 				if(typeof bc.setOverrides === 'function') {
 					bc.setOverrides();
@@ -343,7 +343,7 @@ bc.VisitorClient = function(auth) {
 
 				state = result.UnavailableReason ? 'unavailable' : result.PreChat ? 'prechat' : 'started';
 				if(state === 'started') {
-					onstart(result);
+					onStart(result);
 				}
 				schedulePingChat();
 			});
@@ -359,7 +359,7 @@ bc.VisitorClient = function(auth) {
 			return new bc.RpcError('You can only submit the unavailable form on the unavailable form');
 		}
 		return call('submitUnavailableEmail', {From: from, Subject: subject, Body: body})
-			.failure(onfailure)
+			.failure(onFailure)
 			.success(function() {
 				state = 'unavailable_submitted';
 			});
@@ -370,11 +370,11 @@ bc.VisitorClient = function(auth) {
 			return new bc.RpcError('You can only submit a pre chat when on the pre chat');
 		}
 		return call('submitPreChat', {Data: JSON.stringify(data)})
-			.failure(onfailure)
+			.failure(onFailure)
 			.success(function(result) {
 				state = result.UnavailableReason ? 'unavailable' : result.PreChat ? 'prechat' : 'started';
 				if(state === 'started') {
-					onstart(result);
+					onStart(result);
 				}
 			});
 	};
@@ -384,7 +384,7 @@ bc.VisitorClient = function(auth) {
 			return new bc.RpcError('You can only change language on the pre chat form');
 		}
 		return call('changeLanguage', {Language: language})
-			.failure(onfailure)
+			.failure(onFailure)
 			.success(function(data) {
 				if(data.Brandings) {
 					sessionStorage.setBrandings(data.Brandings);
@@ -441,10 +441,10 @@ bc.VisitorClient = function(auth) {
 		}
 
 		return call('startChat', params)
-			.success(onstart)
+			.success(onStart)
 			.failure(function(message) {
 				bc.util.eraseCookie(bc.config.chatCookie);
-				onfailure(message);
+				onFailure(message);
 			});
 
 	};
@@ -455,7 +455,7 @@ bc.VisitorClient = function(auth) {
 		}
 
 		return callStream('visitorTyping', {IsTyping: isTyping})
-			.failure(onfailure);
+			.failure(onFailure);
 	};
 
 	scope.sendMessage = function(name, message, messageId) {
@@ -463,12 +463,17 @@ bc.VisitorClient = function(auth) {
 			return new bc.RpcError('You cannot send messages if the chat is not active');
 		}
 
-		return callStream('sendMessage', {
+		var msgObj = {
 			Name: name,
 			Message: message,
 			ChatMessageID: messageId || bc.util.getId()
-		})
-			.failure(onfailure);
+		};
+
+		return callStream('sendMessage', msgObj)
+			.failure(function(message) {
+				onFailure('bc-client.sendMessage error:');
+				onFailure(message);
+			});
 	};
 
 	scope.emailChatHistory = function(email) {
@@ -477,7 +482,7 @@ bc.VisitorClient = function(auth) {
 		}
 
 		return callStream('emailChatHistory', {EmailAddress: email})
-			.failure(onfailure);
+			.failure(onFailure);
 	};
 
 	scope.finishChat = function() {
@@ -488,12 +493,12 @@ bc.VisitorClient = function(auth) {
 		finishing = true;
 
 		return call('finishChat', {ClientID: clientID})
-			.failure(function() {
+			.failure(function(message) {
 				stopPingChatLoop();
-				onfailure();
+				onFailure(message);
 			})
 			.success(function(result) {
-				onfinish();
+				onFinish();
 
 				bc.util.eraseCookie(bc.config.chatCookie);
 				bc.util.eraseCookie(bc.config.configCookie);
@@ -508,9 +513,9 @@ bc.VisitorClient = function(auth) {
 		finishing = true;
 
 		return call('getUnavailableForm', {ClientID: clientID})
-			.failure(onfailure)
+			.failure(onFailure)
 			.success(function() {
-				onfinish();
+				onFinish();
 
 				state = 'unavailable';
 			});
@@ -522,12 +527,12 @@ bc.VisitorClient = function(auth) {
 		}
 
 		return callStream('acceptActiveAssist', {ClientID: clientID, ActiveAssistID: activeAssistID})
-			.failure(onfailure);
+			.failure(onFailure);
 	};
 
 	scope.cancelActiveAssist = function() {
 		return callStream('cancelActiveAssist', {ClientID: clientID, ActiveAssistID: activeAssistID})
-			.failure(onfailure);
+			.failure(onFailure);
 	};
 
 	scope.submitPostChat = function(data) {
@@ -536,7 +541,7 @@ bc.VisitorClient = function(auth) {
 		}
 
 		return call('submitPostChat', {Data: JSON.stringify(data)})
-			.failure(onfailure)
+			.failure(onFailure)
 			.success(function(result) {
 				state = result.PostChat ? 'postchat' : 'done';
 			});
@@ -617,7 +622,7 @@ bc.VisitorClient = function(auth) {
 		}
 		if(chatKey) {
 			return call('emailChatHistory', {ChatKey: chatKey, EmailAddress: emailAddress})
-				.failure(onfailure);
+				.failure(onFailure);
 		}
 	};
 

@@ -14,6 +14,7 @@ bc.ViewManager = function(formBuilder) {
 	var scope = this;
 	var scrolling = false;
 	var allTypers = [];
+	var isTyping = false;
 
 	// These elements are referenced frequently in performance-critical parts of the code
 	var chatHistory = document.getElementById('bc-chat-history');
@@ -434,6 +435,40 @@ bc.ViewManager = function(formBuilder) {
 		}
 	};
 
+	this.initializeMessageElement = function(messageElement, messageId, personType, time, avatar) {
+		'use strict';
+
+		if(personType === bc.PersonType.Visitor) {
+			messageElement = $visitorMessageTemplate.cloneNode(true);
+		} else if(personType === bc.PersonType.Operator) {
+			messageElement = $operatorMessageTemplate.cloneNode(true);
+
+			var operatorTitle = document.getElementById("bc-title-operator");
+			var operatorName = document.getElementById("bc-title-operator-name");
+			var operatorAvatar = document.getElementById("bc-title-operator-avatar");
+			bc.util.removeClass(operatorTitle, 'bc-hidden');
+			bc.util.setText(operatorName, name);
+			if(avatar) {
+				bc.util.setText(operatorAvatar, avatar);
+			}
+		} else if(personType === bc.PersonType.System) {
+			messageElement = $systemMessageTemplate.cloneNode(true);
+		}
+		messageElement.setAttribute('id', messageId);
+		hide(messageElement);
+		if(statusMessage && statusMessage.parentNode === chatHistory) {
+			chatHistory.insertBefore(messageElement, statusMessage);
+		} else {
+			chatHistory.appendChild(messageElement);
+		}
+		// Only set time when creating element, it's weird to see it change when the message from the server echos back
+		bc.util.setText(messageElement.getElementsByClassName('bc-msg-time'), time.toLocaleTimeString());
+
+		isTyping = false;
+
+		return messageElement;
+	};
+
 	/**
 	 * Add a message to the chat history area of the chat window. This may be an update to a message that is already in the history
 	 * area, so the messages should be keyed by the message id and updated if the message id received in this function matches.
@@ -443,55 +478,27 @@ bc.ViewManager = function(formBuilder) {
 	 * @param {Date} time - The time the message was sent
 	 * @param {string} message - The message to add.  This may be HTML formatted, so it should not be escaped.
 	 * @param {string} [avatar] - The image url for the sender's avatar
+	 * @param {boolean} [isReconstitutedMsg] - The boolean value indicating if the message is as a result of reconstitution (page refreshes) or if this is the original
+	 * @param {string} [originalText] - The original untranslated message (if using translation)
 	 */
-	this.addOrUpdateMessage = function(messageId, personType, name, time, message, avatar, values) {
+	this.addOrUpdateMessage = function(messageId, personType, name, time, message, avatar, isReconstitutedMsg, originalText) {
 		var performAction = false;
 		var messageElement = document.getElementById(messageId.toString());
 		if(!messageElement) {
-			if(personType === bc.PersonType.Visitor) {
-				messageElement = $visitorMessageTemplate.cloneNode(true);
-			} else if(personType === bc.PersonType.Operator) {
-				messageElement = $operatorMessageTemplate.cloneNode(true);
-
-				var operatorTitle = document.getElementById("bc-title-operator");
-				var operatorName = document.getElementById("bc-title-operator-name");
-				var operatorAvatar = document.getElementById("bc-title-operator-avatar");
-				bc.util.removeClass(operatorTitle, 'bc-hidden');
-				bc.util.setText(operatorName, name);
-				if(avatar) {
-					bc.util.setText(operatorAvatar, avatar);
-				}
-			} else if(personType === bc.PersonType.System) {
-				messageElement = $systemMessageTemplate.cloneNode(true);
-			}
-			messageElement.setAttribute('id', messageId);
-			hide(messageElement);
-			if(statusMessage && statusMessage.parentNode === chatHistory) {
-				chatHistory.insertBefore(messageElement, statusMessage);
-			} else {
-				chatHistory.appendChild(messageElement);
-			}
-			// Only set time when creating element, it's weird to see it change when the message from the server echos back
-			bc.util.setText(messageElement.getElementsByClassName('bc-msg-time'), time.toLocaleTimeString());
-
-			if(values && typeof values.IsReconstitutedMsg === 'undefined') {
-				performAction = true;
-			}
-			//here if the message contains the push tags, then we know we've already invoked them because the message already exists if values.
+			messageElement = scope.initializeMessageElement(messageElement, messageId, personType, time, avatar);
+			performAction = typeof isReconstitutedMsg === 'undefined';
 		}
+		bc.util.setText(messageElement.getElementsByClassName('bc-msg-name'), name);
 
 		if(message.indexOf('<push>') > -1 && message.indexOf('[push]') === -1) {
 			//message = getPushCode(message, performAction, '_blank');
 			message = encodePushTag(encodePushTag(message, '<push>', '</push>', performAction, messageId), '[push]', '[/push]', performAction, messageId);
 		}
-
-		bc.util.setText(messageElement.getElementsByClassName('bc-msg-name'), name);
-
 		var msgText = messageElement.getElementsByClassName('bc-msg-txt');
 		bc.util.setHtml(msgText, message);
 
-		if(values && values.OriginalText) {
-			appendOriginalTranslation(msgText[0], values.OriginalText);
+		if(typeof originalText != 'undefined') {
+			appendOriginalTranslation(msgText[0], originalText);
 		}
 
 		if(avatar) {
@@ -672,17 +679,16 @@ bc.ViewManager = function(formBuilder) {
 			scope.scrollToBottom();
 		});
 
-		var isTyping = false;
-
 		if(sendTextField) {
-			sendTextField.addEventListener('keypress', function(e) {
+			sendTextField.addEventListener('keyup', function(e) {
 				var event = e || window.event;
 				var keyCode = event.which ? event.which : event.keyCode ? event.keyCode : 0;
-				var hasVal = event.target.value;
+				var hasVal = !!this.value;
 				if(keyCode === 13 && !event.shiftKey) {
 					document.getElementById('bc-send-msg-btn').click();
 					e.preventDefault();
 					scope.session.setVisitorTyping(false);
+					isTyping = false;
 					return false;
 				} else if(isTyping !== hasVal) {
 					isTyping = !!hasVal;

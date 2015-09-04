@@ -189,3 +189,18 @@ bc.setOverrides = function() {
 	};
 };
 ```
+
+
+##### Example Customization: Google Maps
+In this example customization we want to integrate with Google Maps. So, for an example, an operator sends a url link to google maps. When the client receives the chat message, a google map will nicely appear with a marker reference from the operator.
+
+How is this accomplished? We want to override the Viewmanager.addOrUpdateMessage method to parse the receiving operator message looking for certain keywords, such as '/map/' and '/@' for the latitude and longitude coordinates. Once we've confirmed the message contains those keywords, we instantiate a div for the google maps container and reference the google maps api. To understand more about how to work with the google maps api, please see [this simple tutorial](http://www.w3schools.com/googleapi/).
+
+Included in the github repo is the code for how we've implemented this. It's under src/recipes/maps.
+To quickly get started, simply include the following two lines of code on your page:
+
+```javascript
+<link type="text/css" rel="stylesheet" href="recipes/maps/bc-maps.css" />
+<script src="recipes/maps/bc-maps.js"></script>
+```
+

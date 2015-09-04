@@ -1,6 +1,7 @@
 module.exports = function() {
 	'use strict';
 
+	var ROOT_START = './';
 	var DEST_START = './out/';
 	var SRC_START = './src/';
 	var JS_BASE = SRC_START + 'scripts/';
@@ -31,6 +32,9 @@ module.exports = function() {
 		, js_popup_dest_src: [DEST_START + 'scripts/' + JS_BC_UTIL, DEST_START + 'scripts/' + JS_BC_CONFIG, DEST_START + 'scripts/' + JS_BC_SDK, DEST_START + 'scripts/' + JS_BC_POPUP]
 		, js_popup_start: [JS_BASE + JS_BC_UTIL, JS_BASE + JS_BC_CONFIG, JS_BASE + JS_BC_SDK, JS_BASE + JS_BC_POPUP]
 		, out_dest: DEST_START
+		, recipe_src: [SRC_START + 'recipes/**/*.*', SRC_START + '**/recipes/**/*.*']
+		, recipe_dest: [DEST_START+ 'recipes/**/*.*', DEST_START + '**/recipes/**/*.*']
+		, root: ROOT_START
 		, src: SRC_START
 		, theme_src: SRC_START + 'themes/'
 		, video_src: [SRC_START + 'videos/**/*.*', SRC_START + '**/videos/**/*.*']

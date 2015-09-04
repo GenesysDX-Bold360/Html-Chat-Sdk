@@ -20,6 +20,7 @@ bc.ApiFrame = function(accountId, frame) {
 	this.messageListener = null;
 	this.id = 1;
 	this.isFrameLoaded = false;
+	this.isConnectionError = false;
 
 	this.initialize();
 };
@@ -41,13 +42,13 @@ bc.ApiFrame.prototype.initialize = function() {
 	}
 
 	var scope = this;
-	var messageListener = function(event) {
+	var receiveApiMessageListener = function(event) {
 		scope._receiveApiMessage(event);
 	};
 	if(window.addEventListener) {
-		window.addEventListener('message', messageListener);
+		window.addEventListener('message', receiveApiMessageListener);
 	} else {
-		window.attachEvent('message', messageListener);
+		window.attachEvent('message', receiveApiMessageListener);
 	}
 };
 
@@ -70,7 +71,7 @@ bc.ApiFrame.prototype._receiveApiMessage = function(event) {
 		var message = {};
 		try {
 			message = JSON.parse(event.data);
-		} catch (error) {
+		} catch(error) {
 			//TODO: We are just logging the errors to the console, but as a customer, you may want to log this information to your server.
 			bc.util.log(event.data, true);
 			bc.util.log(error, true);
@@ -85,14 +86,37 @@ bc.ApiFrame.prototype._receiveApiMessage = function(event) {
 					this._callRestObj(i);
 					i = this.frameLoadQueue.shift();
 				}
-			} else{
+			} else if(this.frameLoadQueue.length > 0 && method === 'reconnected') {
+				bc.util.log('** We are RECONNECTED', false, rest);
+				var i = this.frameLoadQueue.shift();
+				this.isConnectionError = false;
+				var scope = this;
+				while(i) {
+					bc.util.log('** Attempting CallRestObj again', false, i);
+					(function(i) {
+						setTimeout(function() {
+							scope._callRestObj(i);
+						}, 250);
+					})(i);
+					i = this.frameLoadQueue.shift();
+				}
+				this.messageListener(message.method, message.params, message.id);
+			} else if(method === 'reconnecting') {
+				bc.util.log('** RECONNECTING');
+			} else {
 				this.messageListener(message.method, message.params, message.id);
 			}
 		} else {
 			var rest = this.framePendingResults[message.id];
 			if(rest) {
-				this.framePendingResults[message.id] = null;
-				rest.callback.finished(message);
+				if(!message.error) {
+					this.framePendingResults[message.id] = null;
+					rest.callback.finished(message);
+				} else {
+					this.isConnectionError = true;
+					this.frameLoadQueue.push(rest);
+					bc.util.log('** adding to frameLoadQueue : _receiveApiMessage', false, rest);
+				}
 			}
 		}
 	}
@@ -110,12 +134,13 @@ bc.ApiFrame.prototype.call = function(method, params) {
 };
 
 bc.ApiFrame.prototype._callRestObj = function(rest) {
-	if(this.isFrameLoaded) {
+	if(this.isFrameLoaded && !this.isConnectionError) {
 		this.frame.contentWindow.postMessage(JSON.stringify(rest.request), this.frameOrigin);
 		this.framePendingResults[rest.request.id] = rest;
 	} else {
 		// iFrame isn't loaded yet, queue the request, they will be called when it is ready.
 		this.frameLoadQueue.push(rest);
+		bc.util.log('** adding to frameLoadQueue : _callRestObj', false, rest);
 	}
 	return rest.callback;
 };

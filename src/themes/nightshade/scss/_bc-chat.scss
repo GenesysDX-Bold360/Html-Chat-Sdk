@@ -3,7 +3,6 @@
 #bc-layered-chat,
 #bc-popup-chat {
     border: $foxtrot;
-    background: url('../nightshade/images/background.jpg') no-repeat right bottom/cover;
     @include bc-box-shadow(-1px 2px 22px 12px $alfa40);
     @include bc-border-radius(2px);
     font-size: 15px;
@@ -13,6 +12,8 @@
 #bc-chat {
     height: 100%;
     width: 100%;
+    background: url('../nightshade/images/background.jpg') no-repeat right bottom/cover;
+
     @include bc-box-sizing;
 
     input {

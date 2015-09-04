@@ -18,6 +18,7 @@ var config = require('./gulpfile.config')();
 var del = require('del');
 var karma = require('karma').server;
 var path = require('path');
+var rmvEmptyDirs = require('remove-empty-directories');
 var mangle = true;
 var beautify = false;
 //var lazypipe = require('lazypipe');
@@ -104,6 +105,19 @@ gulp.task('videos', function() {
 	log('Copying and optimizing videos');
 
 	return gulp.src(config.video_src, {base: config.base})
+		.pipe(req.newer(config.out_dest))
+		.pipe(req.if(argv.verbose, req.print()))
+		.pipe(gulp.dest(config.out_dest));
+});
+
+gulp.task('clean-recipes', function(cb) {
+	clean(config.recipe_dest, cb);
+});
+
+gulp.task('recipes', function() {
+	log('Copying recipe files');
+
+	return gulp.src(config.recipe_src, {base: config.base})
 		.pipe(req.newer(config.out_dest))
 		.pipe(req.if(argv.verbose, req.print()))
 		.pipe(gulp.dest(config.out_dest));
@@ -293,7 +307,7 @@ gulp.task('zip-files', function() {
 
 		return gulp.src(zipSrc, {base: config.out_dest})
 			.pipe(req.if(argv.verbose, req.print()))
-			.pipe(req.zip(folder + ((argv.prod) ? '_min_' : '_org_') + '.zip'))
+			.pipe(req.zip(folder + ((argv.prod) ? '_min' : '') + '.zip'))
 			.pipe(gulp.dest(config.out_dest + 'themes/' + folder));
 	});
 });
@@ -391,10 +405,28 @@ gulp.task('inject-popup-html', ['clean-popup-html'], function() {
 	return injectFiles('popup', false, true, false, '../..');
 });
 
+gulp.task('clean-build-files', ['clean-images', 'clean-fonts', 'clean-videos', 'clean-sass', 'clean-recipes', 'clean-boldchat-js', 'clean-popup-js', 'clean-start-js', 'clean-theme-js', 'clean-index-html', 'clean-popup-html'], function(cb) {
+	rmvEmptyDirs(config.out_dest);
+});
+
+gulp.task('create-final-build', function() {
+	log('Cleaning all remainig build files, leaving the zips only');
+
+	gulp.src([config.root + 'package.json', config.root + 'gulpfile.*', config.root + 'Version.txt', config.root + 'BoldChat SDK Terms 7-9-14_dcc.pdf'])
+		.pipe(req.newer(config.out_dest))
+		.pipe(req.if(argv.verbose, req.print()))
+		.pipe(gulp.dest(config.out_dest));
+
+	return gulp.src([config.src + '**/*.*', '!' + config.src + 'old/**/*.*', '!' + config.src + 'index*.html', '!' + config.src + 'themes/**/*.css{,.map}'])
+		.pipe(req.newer(config.out_dest))
+		.pipe(req.if(argv.verbose, req.print()))
+		.pipe(gulp.dest(config.out_dest + 'src/'));
+});
+
 gulp.task('integration', ['nightwatch:chrome']);
 
 gulp.task('minify-all-js', ['minify-theme-js', 'minify-boldchat-js', 'minify-start-js', 'minify-popup-js']);
-gulp.task('build-requirements', ['fonts', 'images', 'videos', 'sass', 'minify-all-js']);
+gulp.task('build-requirements', ['fonts', 'images', 'videos', 'sass', 'recipes', 'minify-all-js']);
 gulp.task('html-process-only', ['inject-index-html', 'inject-popup-html']);
 
 gulp.task('default', ['build-requirements', 'html-process-only']);
