@@ -192,6 +192,7 @@ bc.setOverrides = function() {
 
 
 ##### Example Customization: Google Maps
+![Google Maps / IFrame demo](http://logmein-boldchat.github.io/Html-Chat-Sdk/ChatWindowMapIframeDemo.gif)
 In this example customization we want to integrate with Google Maps. So, for an example, an operator sends a url link to google maps. When the client receives the chat message, a google map will nicely appear with a marker reference from the operator.
 
 How is this accomplished? We want to override the Viewmanager.addOrUpdateMessage method to parse the receiving operator message looking for certain keywords, such as '/map/' and '/@' for the latitude and longitude coordinates. Once we've confirmed the message contains those keywords, we instantiate a div for the google maps container and reference the google maps api. To understand more about how to work with the google maps api, please see [this simple tutorial](http://www.w3schools.com/googleapi/).
@@ -207,4 +208,3 @@ To quickly get started, simply include the following two lines of code on your p
 * Recipes Note:
 		** To use a recipe, copy the recipe from the src to the theme folder you are working in (if you are just using the individual themes)
 		** If you want the recipes to work on the popup, you must also include the file above on the popup.html under each theme.
-
