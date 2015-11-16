@@ -182,8 +182,8 @@ bc.FormBuilder = function(localizer) {
 			var validationErrors = {};
 			var setFocusTo;
 
-			for(var key in formItems) {
-				var item = formItems[key];
+			for(var fKey in formItems) {
+				var item = formItems[fKey];
 				var e = document.getElementById(item.ElementId);
 				var val = getValue(e);
 
@@ -194,12 +194,12 @@ bc.FormBuilder = function(localizer) {
 					}
 
 					if(item.Valid) {
-						dataItems[key] = val;
+						dataItems[fKey] = val;
 					}
 				}
 
 				if(showErrors) {
-					if(!item.Valid || (item.Required && !dataItems[key])) {
+					if(!item.Valid || (item.Required && !dataItems[fKey])) {
 						validForm = false;
 						if(!requiredErrors) {
 							setFocusTo = e;
@@ -228,12 +228,12 @@ bc.FormBuilder = function(localizer) {
 					}
 
 					if(validationErrors) {
-						for(var key in validationErrors) {
-							validator.appendChild(bc.util.createElement('span', {'data-l10n': key}, localizer.getLocalizedValue(key) || 'Please enter a valid value: '));
+						for(var vKey in validationErrors) {
+							validator.appendChild(bc.util.createElement('span', {'data-l10n': vKey}, localizer.getLocalizedValue(vKey) || 'Please enter a valid value: '));
 							var validatorUl = document.createElement('ul');
-							for(var idx = 0; idx < validationErrors[key].length; idx++) {
-								var item = validationErrors[key][idx];
-								validatorUl.appendChild(bc.util.createElement('li', {'data-l10n': item.LabelKey}, item.Label));
+							for(var idx = 0; idx < validationErrors[vKey].length; idx++) {
+								var vItem = validationErrors[vKey][idx];
+								validatorUl.appendChild(bc.util.createElement('li', {'data-l10n': vItem.LabelKey}, vItem.Label));
 							}
 							validator.appendChild(validatorUl);
 						}
@@ -323,7 +323,7 @@ bc.FormBuilder = function(localizer) {
 			var validationGroupKey;
 			var validationFunc;
 			if(type === 'email') {
-				validationGroupKey = "api#email#error";
+				validationGroupKey = 'api#email#error';
 				validationFunc = validateEmail;
 			}
 			registerFormItem(e, data.Key, !!data.Required, data.Label, data.LabelBranding, validationGroupKey, validationFunc);

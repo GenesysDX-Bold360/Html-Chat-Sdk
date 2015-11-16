@@ -35,7 +35,7 @@ var bc = bc || {};
 			viewPortMetaTagContent: 'width=device-width, height=device-height, initial-scale=1, maximum-scale=1.0, user-scalable=no',
 
 			displayTypingOperatorImage: true,
-			defaultCompanyLogoLocation: 'images/unknown-customer.jpg'
+			defaultCompanyLogoLocation: 'images/unknown-customer.png'
 		};
 	}
 

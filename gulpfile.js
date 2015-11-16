@@ -1,5 +1,5 @@
 /*eslint-env node*/
-"use strict";
+'use strict';
 
 //Various Arguments that can used i.e. gulp {--verbose --prod --minhtml}:
 //	--verbose = print out the files affected by each task
@@ -141,7 +141,7 @@ gulp.task('minify-start-js', ['clean-start-js'], function() {
 	if(argv.prod || argv.min) {
 		return getStartJsSource()
 			.pipe(req.if(argv.min, req.sourcemaps.init()))
-			.pipe(req.concat(nameJsIndexStart + ".js"))
+			.pipe(req.concat(nameJsIndexStart + '.js'))
 			.pipe(req.if(!argv.min, gulp.dest(config.js_dest)))
 			.pipe(req.if(argv.min, req.uglify({mangle: mangle, output: {beautify: beautify}})))
 			.pipe(req.if(argv.min, req.rename({suffix: '.min'})))
@@ -170,7 +170,7 @@ gulp.task('minify-boldchat-js', ['clean-boldchat-js'], function() {
 	if(argv.prod || argv.min) {
 		return getBoldchatJsSource()
 			.pipe(req.if(argv.min, req.sourcemaps.init()))
-			.pipe(req.concat(nameJsBoldchat + ".js"))
+			.pipe(req.concat(nameJsBoldchat + '.js'))
 			.pipe(req.if(!argv.min, gulp.dest(config.js_dest)))
 			.pipe(req.if(argv.min, req.uglify({mangle: mangle, output: {beautify: beautify}})))
 			.pipe(req.if(argv.min, req.rename({suffix: '.min'})))
@@ -178,7 +178,7 @@ gulp.task('minify-boldchat-js', ['clean-boldchat-js'], function() {
 			.pipe(req.if(argv.min, gulp.dest(config.js_dest)));
 	} else {
 		return getBoldchatJsSource()
-			.pipe(gulp.dest(config.js_dest))
+			.pipe(gulp.dest(config.js_dest));
 	}
 });
 
@@ -194,7 +194,7 @@ gulp.task('minify-popup-js', ['clean-popup-js'], function() {
 	if(argv.prod || argv.min) {
 		return getStartJsSource('popup')
 			.pipe(req.if(argv.min, req.sourcemaps.init()))
-			.pipe(req.concat(nameJsPopupStart + ".js"))
+			.pipe(req.concat(nameJsPopupStart + '.js'))
 			.pipe(req.if(!argv.min, gulp.dest(config.js_dest)))
 			.pipe(req.if(argv.min, req.uglify({mangle: mangle, output: {beautify: beautify}})))
 			.pipe(req.if(argv.min, req.rename({suffix: '.min'})))
@@ -202,7 +202,7 @@ gulp.task('minify-popup-js', ['clean-popup-js'], function() {
 			.pipe(req.if(argv.min, gulp.dest(config.js_dest)));
 	} else {
 		return getStartJsSource('popup')
-			.pipe(gulp.dest(config.js_dest))
+			.pipe(gulp.dest(config.js_dest));
 	}
 });
 
@@ -314,12 +314,12 @@ gulp.task('zip-files', function() {
 
 var getJsStartSrc = function(fileType) {
 	return getStartJsSource(fileType)
-		.pipe(req.if(argv.prod || argv.min, req.concat((fileType === 'popup' ? nameJsPopupStart : nameJsIndexStart) + ".js")))
-		.pipe(req.if(argv.min, req.rename({suffix: '.min'})))
+		.pipe(req.if(argv.prod || argv.min, req.concat((fileType === 'popup' ? nameJsPopupStart : nameJsIndexStart) + '.js')))
+		.pipe(req.if(argv.min, req.rename({suffix: '.min'})));
 };
 var getJsBoldchatSrc = function() {
 	return getBoldchatJsSource()
-		.pipe(req.if(argv.prod || argv.min, req.concat(nameJsBoldchat + ".js")))
+		.pipe(req.if(argv.prod || argv.min, req.concat(nameJsBoldchat + '.js')))
 		.pipe(req.if(argv.min, req.rename({suffix: '.min'})));
 };
 var getThemeName = function(themePath) {
@@ -344,7 +344,7 @@ var getInjectStartOptions = function(addRootSlash, relative) {
 		relative: relative || false,
 		addRootSlash: addRootSlash || false,
 		ignorePath: 'src/'
-	}
+	};
 };
 var getInjectBoldChatOptions = function(addRootSlash, relative) {
 	return {
@@ -352,7 +352,7 @@ var getInjectBoldChatOptions = function(addRootSlash, relative) {
 		relative: relative || false,
 		addRootSlash: addRootSlash || false,
 		ignorePath: 'src/'
-	}
+	};
 };
 var getInjectThemeOptions = function(addRootSlash, relative, prefix) {
 	return {
@@ -361,7 +361,7 @@ var getInjectThemeOptions = function(addRootSlash, relative, prefix) {
 		addRootSlash: addRootSlash || false,
 		addPrefix: prefix,
 		ignorePath: 'src/'
-	}
+	};
 };
 
 var injectFiles = function(fileType, addRootSlash, relative, themeSpecificRelative, prefix) {
