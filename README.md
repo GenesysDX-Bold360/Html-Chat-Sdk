@@ -201,8 +201,8 @@ Included in the github repo is the code for how we've implemented this. It's und
 To quickly get started, simply include the following two lines of code on your page:
 
 ```javascript
-<link type="text/css" rel="stylesheet" href="recipes/maps/bc-maps.css" />
-<script src="recipes/maps/bc-maps.js"></script>
+<link type="text/css" rel="stylesheet" href="recipes/maps/bc-slideout.css" />
+<script src="recipes/maps/bc-slideout.js"></script>
 ```
 
 * Recipes Note:
