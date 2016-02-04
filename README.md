@@ -205,6 +205,7 @@ To quickly get started, simply include the following two lines of code on your p
 <script src="recipes/maps/bc-slideout.js"></script>
 ```
 
-* Recipes Note:
-** To use a recipe, copy the recipe from the src to the theme folder you are working in (if you are just using the individual themes)
-** If you want the recipes to work on the popup, you must also include the file above on the popup.html under each theme.
+Recipes Note:
+* To use a recipe, copy the recipe from the src to the theme folder you are working in (if you are just using the individual themes)
+* If you want the recipes to work on the popup, you must also include the file above on the popup.html under each theme.
+
