@@ -427,6 +427,6 @@ gulp.task('integration', ['nightwatch:chrome']);
 
 gulp.task('minify-all-js', ['minify-theme-js', 'minify-boldchat-js', 'minify-start-js', 'minify-popup-js']);
 gulp.task('build-requirements', ['fonts', 'images', 'videos', 'sass', 'recipes', 'minify-all-js']);
-gulp.task('html-process-only', ['inject-index-html', 'inject-popup-html']);
+gulp.task('build-html-files', ['inject-index-html', 'inject-popup-html']);
 
-gulp.task('default', ['build-requirements', 'html-process-only']);
+gulp.task('default', ['build-requirements', 'build-html-files']);

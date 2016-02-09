@@ -35,6 +35,23 @@ The zip file in this repository contains two versions of each included theme:
 
 ## Getting Started
 1) Download one of the theme zip files and add it to your web site. Alternatively you could clone or download this repository.
+    * The final folder structure should resemble the following:
+    * /root - this is the root folder of your site
+    *   /root/images    - location of images used for the sdk
+    *   /root/recipes   - location of recipes such as the maps or survey examples provided
+    *       /root/recipes/survey & maps
+    *   /root/scripts   - location of script files used by the sdk
+    *   /root/themes    - location of each theme  *see Notes below*
+    *       /root/themes/basic
+    *       /root/themes/hubris
+    *       /root/themes/lovato
+    *       /root/themes/nightshade
+    
+    * **Notes** 
+        * Each theme contains two zip files:
+            * One is minified, the other is an unminified version.
+            * Each copy contains the files that are specific to that theme, as well as the root files necessary to make that theme work. As such, each theme contains a duplicate of the root files.
+                * They contain the index.html file that would be the root html file, the root/images, root/scripts and finally the themes folder which contains just that theme specific data.
 
 2) Generate an API key in the Boldchat Client. For more information see [BoldChat Help](http://help.boldchat.com/help/BoldChat/c_bc_sdk_get_sdk.html)
 
@@ -88,10 +105,10 @@ npm install && gulp
 	 - **minify-boldchat-js**: Boldchat js files are the core HTML SDK files, used by both Popup and Layered Chat Windows. 
 	 - **minify-start-js**: Place Start js files on your existing site/page where you want to use the HTML SDK Chat Window. These files include the utility functions used by the other files, the configuration files as well as a start-sdk file that handles the opening of the windows themselves.
 	 - **minify-popup-js**: These files are used exclusively by Popup Windows. The minify-start-js files are included besides the necessary popup file.
- - **html-process-only**: Our gulp process uses gulp-inject as a means to build the appropriate output files. Each theme can be opened in either a layered or popup window mode. To prevent duplication of effort on developments part, the popup.html files (under each theme) are created at build time. The 'template' for each popup is the index.html file under each theme. For example, building html-process-only would take the themes/hubris/index.html file and extract the html to build the themes/hubris/popup.html file. 
+ - **build-html-files**: Our gulp process uses gulp-inject as a means to build the appropriate output files. Each theme can be opened in either a layered or popup window mode. To prevent duplication of effort on developments part, the popup.html files (under each theme) are created at build time. The 'template' for each popup is the index.html file under each theme. For example, building build-html-files would take the themes/hubris/index.html file and extract the html to build the themes/hubris/popup.html file. 
 	 - **inject-index-html**: Injects the necessary JavaScript and CSS files into their appropriate tag placeholders, depending on build arguments.
 	 - **inject-popup-html**: Injects the necessary JavaScript and CSS files into their appropriate tag placeholders, depending on build arguments. It also copies the index.html and inserts into appropriate place in popup.html
- - Running the default gulp task executes 'build-requirements', 'html-process-only' and finally 'js-doc'. 
+ - Running the default gulp task executes 'build-requirements', 'build-html-files' and finally 'js-doc'. 
 	 - **js-doc**: Creates a help document from the JavaScript files.
 
 ####There are various gulp arguments you can pass to the gulp build process:

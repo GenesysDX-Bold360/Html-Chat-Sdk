@@ -1,3 +1,9 @@
+Version 1.2
+    * Bug fix with textarea sending carriage return on lovato theme
+    * Bug fix with invalid recipe name
+    * Fix minimized theme to reference correct minimized css file
+    * Updated help file to add clearer expected file layout
+
 Version 1.1
     * Bug fixes related to connectivity
     * Bug fix sending multiple visitor typing messages to server
