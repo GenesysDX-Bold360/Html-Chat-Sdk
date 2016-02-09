@@ -35,6 +35,7 @@ The zip file in this repository contains two versions of each included theme:
 
 ## Getting Started
 1) Download one of the theme zip files and add it to your web site. Alternatively you could clone or download this repository.
+
     * The final folder structure should resemble the following:
     * /root - this is the root folder of your site
     *   /root/images    - location of images used for the sdk
