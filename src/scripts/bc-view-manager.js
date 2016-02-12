@@ -444,10 +444,8 @@ bc.ViewManager = function(formBuilder) {
 			messageElement = $operatorMessageTemplate.cloneNode(true);
 
 			var operatorTitle = document.getElementById("bc-title-operator");
-			var operatorName = document.getElementById("bc-title-operator-name");
 			var operatorAvatar = document.getElementById("bc-title-operator-avatar");
 			bc.util.removeClass(operatorTitle, 'bc-hidden');
-			bc.util.setText(operatorName, name);
 			if(avatar) {
 				bc.util.setText(operatorAvatar, avatar);
 			}
