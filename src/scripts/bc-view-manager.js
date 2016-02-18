@@ -146,6 +146,16 @@ bc.ViewManager = function(formBuilder) {
 	};
 
 	/**
+	 * Hide all vistor and operator messages
+	 */
+	this.hideMessages = function(element) {
+		var messages = document.querySelectorAll(".bc-msg-vis, .bc-msg-op");
+		for (var i = messages.length - 1; i >= 0; i--) {
+			hide(messages[i]);
+		}
+	};
+
+	/**
 	 * The parts of the chat form that accepts user interaction (e.g. input field, send button, etc.) should be disabled or hidden.  The
 	 * chat form should remain visible. Ideally a close button should appear allowing the user to end the chat.  This function is
 	 * called when an operator ends the chat. In this scenario the visitor may not have finished reading the chat messages and

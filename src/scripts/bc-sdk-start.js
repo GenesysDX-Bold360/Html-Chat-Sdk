@@ -52,6 +52,9 @@ bc.openChat = function(chatParams, visitInfo) {
 	if(typeof window._bcChatWindowUrl !== 'undefined') {
 		bc.config.chatWindowUrl = window._bcChatWindowUrl;
 	}
+	if(typeof window._bcDebug !== 'undefined') {
+		bc.config.debug = window._bcDebug;
+	}
 
 
 	var hideInvite = function(opacity) {

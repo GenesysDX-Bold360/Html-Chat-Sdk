@@ -67,7 +67,7 @@ bc.util.eraseCookie = function(name) {
  * @returns {boolean} true if enabled, false otherwise
  */
 bc.util.isDebugEnabled = function() {
-	return true;
+	return bc.config.debug === undefined ? true : bc.config.debug;
 };
 
 /**
