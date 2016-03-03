@@ -19,9 +19,9 @@ var del = require('del');
 var karma = require('karma').server;
 var path = require('path');
 var rmvEmptyDirs = require('remove-empty-directories');
+var runSequence = require('run-sequence');
 var mangle = true;
 var beautify = false;
-//var lazypipe = require('lazypipe');
 
 function log(msg) {
 	if(typeof(msg) === 'object') {
@@ -37,17 +37,17 @@ function log(msg) {
 
 function clean(path, cb) {
 	log('Cleaning: ' + req.util.colors.blue(path));
-	del(path, cb);
+	return del(path, cb);
 }
 
 //***** Begin Gulp Tasks *****//
 
 gulp.task('clean', function(cb) {
-	clean(config.out_dest, cb);
+	return clean(config.out_dest, cb);
 });
 
 gulp.task('clean-sass', function(cb) {
-	clean(config.css_dest, cb);
+	return clean(config.css_dest, cb);
 });
 
 gulp.task('sass', ['clean-sass'], function() {
@@ -71,7 +71,7 @@ gulp.task('sass-dev', function() {
 });
 
 gulp.task('clean-fonts', function(cb) {
-	clean(config.font_dest, cb);
+	return clean(config.font_dest, cb);
 });
 
 gulp.task('fonts', function() {
@@ -84,7 +84,7 @@ gulp.task('fonts', function() {
 });
 
 gulp.task('clean-images', function(cb) {
-	clean(config.image_dest, cb);
+	return clean(config.image_dest, cb);
 });
 
 gulp.task('images', function() {
@@ -98,7 +98,7 @@ gulp.task('images', function() {
 });
 
 gulp.task('clean-videos', function(cb) {
-	clean(config.video_dest, cb);
+	return clean(config.video_dest, cb);
 });
 
 gulp.task('videos', function() {
@@ -111,7 +111,7 @@ gulp.task('videos', function() {
 });
 
 gulp.task('clean-recipes', function(cb) {
-	clean(config.recipe_dest, cb);
+	return clean(config.recipe_dest, cb);
 });
 
 gulp.task('recipes', function() {
@@ -127,13 +127,13 @@ gulp.task('clean-start-js', function(cb) {
 	var startJs = config.js_start_dest_src;
 	startJs.push(config.js_dest + nameJsIndexStart + '*');
 	startJs.push('!' + config.js_dest + nameJsPopupStart + '*');
-	clean(startJs, cb);
+	return clean(startJs, cb);
 });
 
-var getStartJsSource = function(fileType) {
+function getStartJsSource(fileType) {
 	return gulp.src(fileType && fileType === 'popup' ? config.js_popup_start : config.js_start)
 		.pipe(req.if(argv.verbose, req.print()));
-};
+}
 
 gulp.task('minify-start-js', ['clean-start-js'], function() {
 	log('Minifying, concatenating and uglifying start js files');
@@ -156,13 +156,13 @@ gulp.task('minify-start-js', ['clean-start-js'], function() {
 gulp.task('clean-boldchat-js', function(cb) {
 	var bcJs = config.js_bc_dest_src;
 	bcJs.push(config.js_dest + nameJsBoldchat + '*');
-	clean(bcJs, cb);
+	return clean(bcJs, cb);
 });
 
-var getBoldchatJsSource = function() {
+function getBoldchatJsSource() {
 	return gulp.src(config.js_bc)
 		.pipe(req.if(argv.verbose, req.print()));
-};
+}
 
 gulp.task('minify-boldchat-js', ['clean-boldchat-js'], function() {
 	log('Minifying, concatenating and uglifying boldchat js files');
@@ -185,7 +185,7 @@ gulp.task('minify-boldchat-js', ['clean-boldchat-js'], function() {
 gulp.task('clean-popup-js', function(cb) {
 	var startPopupJs = config.js_popup_dest_src;
 	startPopupJs.push(config.js_dest + nameJsPopupStart + '*');
-	clean(startPopupJs, cb);
+	return clean(startPopupJs, cb);
 });
 
 gulp.task('minify-popup-js', ['clean-popup-js'], function() {
@@ -207,7 +207,7 @@ gulp.task('minify-popup-js', ['clean-popup-js'], function() {
 });
 
 gulp.task('clean-theme-js', function(cb) {
-	clean(config.js_theme_dest + 'themes/**/*.js*', cb);
+	return clean(config.js_theme_dest + 'themes/**/*.js*', cb);
 });
 
 gulp.task('minify-theme-js', ['clean-theme-js'], function() {
@@ -233,7 +233,7 @@ function getIndexBodyContent(templatePath) {
 }
 
 gulp.task('clean-js-doc', function(cb) {
-	clean(config.doc_dest, cb);
+	return clean(config.doc_dest, cb);
 });
 
 gulp.task('js-doc', ['clean-js-doc'], function() {
@@ -278,7 +278,7 @@ gulp.task('webserver', ['clean', 'default'], function() {
 });
 
 gulp.task('clean-zips', function(cb) {
-	clean(config.out_dest + '**/*.zip', cb);
+	return clean(config.out_dest + '**/*.zip', cb);
 });
 
 function getFolders(dir) {
@@ -312,81 +312,91 @@ gulp.task('zip-files', function() {
 	});
 });
 
-var getJsStartSrc = function(fileType) {
+function getJsStartSrc(fileType) {
 	return getStartJsSource(fileType)
 		.pipe(req.if(argv.prod || argv.min, req.concat((fileType === 'popup' ? nameJsPopupStart : nameJsIndexStart) + '.js')))
 		.pipe(req.if(argv.min, req.rename({suffix: '.min'})));
-};
-var getJsBoldchatSrc = function() {
+}
+
+function getJsBoldchatSrc() {
 	return getBoldchatJsSource()
 		.pipe(req.if(argv.prod || argv.min, req.concat(nameJsBoldchat + '.js')))
 		.pipe(req.if(argv.min, req.rename({suffix: '.min'})));
-};
-var getThemeName = function(themePath) {
+}
+
+function getThemeName(themePath) {
 	var themeId = 'theme';
 	var idxOfTheme = themePath.path.indexOf(themeId);
 	var themeNameStart = idxOfTheme + themeId.length + 1;
 	var themeNameEnd = themePath.path.indexOf(path.sep, themeNameStart + 1);
 	return themePath.path.substr(themeNameStart + 1, themeNameEnd - themeNameStart - 1);
-};
-var getThemeSrc = function(path, fileSuffix, isProd, isMin) {
+}
+
+function getThemeSrc(path, fileSuffix, isProd, isMin, verbose) {
 	var themeName = getThemeName(path);
-	if(argv.verbose) {
-		log(fileSuffix + ' for: ' + themeName);
+	var src = config.out_dest + 'themes/' + themeName + '/**/*.' + fileSuffix;
+	if(verbose) {
+		log('Getting ' + themeName + ' ' + fileSuffix + ' files located at: ' + src);
 	}
-	return gulp.src(config.theme_src + themeName + '/**/*.' + fileSuffix, {read: isProd})	//if read is set to false then concat won't work
-		//.pipe(req.if(argv.prod, req.concat(themeName + '.' + fileSuffix)))
-		.pipe(req.if(isMin, req.rename({suffix: '.min'})));
-};
-var getInjectStartOptions = function(addRootSlash, relative) {
+	return gulp.src(src, {read: isProd})	//if read is set to false then concat won't work
+		.pipe(req.if(verbose, req.print(function(fp) {
+			return 'Using file: ' + fp;
+		})));
+}
+
+function getInjectStartOptions(addRootSlash, relative) {
 	return {
 		starttag: '<!-- inject:bcStart:{{ext}} -->',
 		relative: relative || false,
 		addRootSlash: addRootSlash || false,
 		ignorePath: 'src/'
 	};
-};
-var getInjectBoldChatOptions = function(addRootSlash, relative) {
+}
+
+function getInjectBoldChatOptions(addRootSlash, relative) {
 	return {
 		starttag: '<!-- inject:boldchat:{{ext}} -->',
 		relative: relative || false,
 		addRootSlash: addRootSlash || false,
 		ignorePath: 'src/'
 	};
-};
-var getInjectThemeOptions = function(addRootSlash, relative, prefix) {
+}
+
+function getInjectThemeOptions(addRootSlash, relative, prefix) {
 	return {
 		starttag: '<!-- inject:themeSpecific:{{ext}} -->',
 		relative: relative || false,
 		addRootSlash: addRootSlash || false,
 		addPrefix: prefix,
-		ignorePath: 'src/'
+		ignorePath: ['src/', 'out/']
 	};
-};
+}
 
-var injectFiles = function(fileType, addRootSlash, relative, themeSpecificRelative, prefix) {
+function injectFiles(fileType, addRootSlash, relative, themeSpecificRelative, prefix) {
 	var startOptions = getInjectStartOptions(addRootSlash, relative);
 	var boldchatOptions = getInjectBoldChatOptions(addRootSlash, relative);
 	var themeOptions = getInjectThemeOptions(addRootSlash, typeof themeSpecificRelative === 'undefined' ? relative : themeSpecificRelative, prefix);
 
 	var localProd = argv.prod;
 	var localMin = argv.min;
+	var verbose = argv.verbose;
 	return gulp
 		.src([config.src + '**/' + fileType + '.html', '!' + config.src + '/old/**'], {base: config.base})
 		.pipe(req.inject(getJsStartSrc(fileType), startOptions))
 		.pipe(req.inject(getJsBoldchatSrc(), boldchatOptions))
 		.pipe(req.foreach(function(stream, file) {
+			log('file: ' + file.path);
 			return stream
 				.pipe(req.if(fileType === 'popup', req.template(getIndexBodyContent(file.path))))
-				.pipe(req.inject(getThemeSrc(file, 'js', localProd, localMin), themeOptions))
-				.pipe(req.inject(getThemeSrc(file, 'css', localProd, localMin), themeOptions));
+				.pipe(req.inject(getThemeSrc(file, 'js', localProd, localMin, verbose), themeOptions))
+				.pipe(req.inject(getThemeSrc(file, 'css', localProd, localMin, verbose), themeOptions));
 		}))
 		.pipe(req.if(argv.minhtml, req.minifyHtml()))
 		.pipe(gulp.dest(config.out_dest));
-};
+}
 
 gulp.task('clean-index-html', function(cb) {
-	clean([config.out_dest + '**/*.html', '!' + config.out_dest + '**/popup.html'], cb);
+	return clean([config.out_dest + '**/*.html', '!' + config.out_dest + '**/popup.html'], cb);
 });
 
 gulp.task('inject-index-html', ['clean-index-html'], function() {
@@ -396,7 +406,7 @@ gulp.task('inject-index-html', ['clean-index-html'], function() {
 });
 
 gulp.task('clean-popup-html', function(cb) {
-	clean(config.out_dest + '**/popup.html', cb);
+	return clean(config.out_dest + '**/popup.html', cb);
 });
 
 gulp.task('inject-popup-html', ['clean-popup-html'], function() {
@@ -410,7 +420,7 @@ gulp.task('clean-build-files', ['clean-images', 'clean-fonts', 'clean-videos', '
 });
 
 gulp.task('create-final-build', function() {
-	log('Cleaning all remainig build files, leaving the zips only');
+	log('Cleaning all remaining build files, leaving the zips only');
 
 	gulp.src([config.root + 'package.json', config.root + 'gulpfile.*', config.root + 'Version.txt', config.root + 'BoldChat SDK Terms 7-9-14_dcc.pdf'])
 		.pipe(req.newer(config.out_dest))
@@ -425,8 +435,11 @@ gulp.task('create-final-build', function() {
 
 gulp.task('integration', ['nightwatch:chrome']);
 
+gulp.task('build-basics', ['fonts', 'images', 'videos', 'recipes']);
 gulp.task('minify-all-js', ['minify-theme-js', 'minify-boldchat-js', 'minify-start-js', 'minify-popup-js']);
-gulp.task('build-requirements', ['fonts', 'images', 'videos', 'sass', 'recipes', 'minify-all-js']);
-gulp.task('build-html-files', ['inject-index-html', 'inject-popup-html']);
+gulp.task('build-html-requirements', ['sass', 'minify-all-js']);
+gulp.task('build-html-files', function(cb) {
+	runSequence('build-html-requirements', ['inject-index-html', 'inject-popup-html'], cb);
+});
 
-gulp.task('default', ['build-requirements', 'build-html-files']);
+gulp.task('default', ['build-basics', 'build-html-files']);

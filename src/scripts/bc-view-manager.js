@@ -233,7 +233,7 @@ bc.ViewManager = function(formBuilder) {
 		bc.util.removeClass(minimizeChatButton, 'bc-notify');
 		setTimeout(function() {
 			bc.util.addClass(minimizeChatButton, 'bc-notify');
-		}, 200)
+		}, 200);
 	};
 
 	var getOperatorImage = function(operatorAvatar) {
@@ -564,11 +564,20 @@ bc.ViewManager = function(formBuilder) {
 	this.initialize = function(session) {
 		this.session = session;
 
+		function returnTextWithNoCarriageReturnAtEnd(msg) {
+			if (msg.length > 1) {
+				return msg.substr(0, msg.length - 1) + msg[msg.length - 1].replace(/ {2,}/g,' ').replace(/[\n\r]*/g,'');
+			}
+
+			return msg;
+		}
+
 		var sendButton = document.getElementById('bc-send-msg-btn');
 		if(sendButton) {
 			sendButton.addEventListener('click', function() {
 				var msg = sendTextField.value;
-				if(msg) {
+				if(msg && msg.length > 0) {
+					msg = returnTextWithNoCarriageReturnAtEnd(msg);
 					var id = scope.session.addVisitorMessage(msg);
 					var currentTime = new Date();
 					var sender = scope.session.getVisitorName();
