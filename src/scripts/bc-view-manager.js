@@ -435,9 +435,8 @@ bc.ViewManager = function(formBuilder) {
 		}
 	};
 
-	this.initializeMessageElement = function(messageElement, messageId, personType, time, avatar) {
+	this.initializeMessageElement = function(messageElement, messageId, personType, time, avatar, name) {
 		'use strict';
-
 		if(personType === bc.PersonType.Visitor) {
 			messageElement = $visitorMessageTemplate.cloneNode(true);
 		} else if(personType === bc.PersonType.Operator) {
@@ -485,7 +484,7 @@ bc.ViewManager = function(formBuilder) {
 		var performAction = false;
 		var messageElement = document.getElementById(messageId.toString());
 		if(!messageElement) {
-			messageElement = scope.initializeMessageElement(messageElement, messageId, personType, time, avatar);
+			messageElement = scope.initializeMessageElement(messageElement, messageId, personType, time, avatar, name);
 			performAction = typeof isReconstitutedMsg === 'undefined';
 		}
 		bc.util.setText(messageElement.getElementsByClassName('bc-msg-name'), name);
