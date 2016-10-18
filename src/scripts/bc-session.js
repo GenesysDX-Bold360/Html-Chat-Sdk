@@ -155,7 +155,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 					if(isChatQueued()) {
 						scope.cancelQueueWait();
 					}
-					answerTimeout = null
+					answerTimeout = null;
 				}, secondsToTimeout * 1000);
 			}
 		}

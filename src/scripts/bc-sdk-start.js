@@ -56,7 +56,6 @@ bc.openChat = function(chatParams, visitInfo) {
 		bc.config.debug = window._bcDebug;
 	}
 
-
 	var hideInvite = function(opacity) {
 		if(opacity === 0) {
 			var invites = document.getElementsByName('bt_invite_box');

@@ -8,14 +8,17 @@ var bc = bc || {};
  * Initializes a communication frame for the boldchat api to make requests and receive oss messages.
  * @param {string} accountId - The accountid for the customer
  * @param {iframeElement} [frame] - An iframe element
+ * @param {string} serverSet - The server set where the account resides (currently 'eu' for EU and empty for US)
  * @constructor
  */
-bc.ApiFrame = function(accountId, frame) {
+bc.ApiFrame = function(accountId, frame, serverSet) {
+	var isConfigServerSetDefined = !!bc.config.serverSet || bc.config.serverSet === '';
+
 	this.accountId = accountId;
 	this.frame = frame;
 	this.frameLoadQueue = [];
 	this.framePendingResults = {};
-	this.serverSet = bc.config.serverSet || '';
+	this.serverSet = isConfigServerSetDefined ? bc.config.serverSet : (serverSet || '');
 	this.frameOrigin = 'https://api' + this.serverSet + '.boldchat.com';
 	this.messageListener = null;
 	this.id = 1;

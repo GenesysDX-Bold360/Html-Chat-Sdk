@@ -1,3 +1,7 @@
+Version 1.3
+    * Add geoaffinity serverset usage
+    * Update NPM packages
+
 Version 1.2
     * Bug fix with textarea sending carriage return on lovato theme
     * Bug fix with invalid recipe name

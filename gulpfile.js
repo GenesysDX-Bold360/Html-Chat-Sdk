@@ -58,7 +58,7 @@ gulp.task('sass', ['clean-sass'], function() {
 		.pipe(req.if(argv.min, req.sourcemaps.init()))
 		.pipe(req.sass({outputStyle: 'expanded'}))
 		.pipe(req.if(!argv.min, gulp.dest(config.out_dest)))
-		.pipe(req.if(argv.min, req.minifyCss()))
+		.pipe(req.if(argv.min, req.cleanCss()))
 		.pipe(req.if(argv.min, req.rename({suffix: '.min'})))
 		.pipe(req.if(argv.min, req.sourcemaps.write('./')))
 		.pipe(req.if(argv.min, gulp.dest(config.out_dest)));
@@ -236,12 +236,12 @@ gulp.task('clean-js-doc', function(cb) {
 	return clean(config.doc_dest, cb);
 });
 
-gulp.task('js-doc', ['clean-js-doc'], function() {
+gulp.task('js-doc', ['clean-js-doc'], function(cb) {
 	log('Creating JSDocs');
 
 	return gulp.src(config.js_all)
 		.pipe(req.if(argv.verbose, req.print()))
-		.pipe(req.jsdoc(config.doc_dest));
+		.pipe(req.jsdoc3(config.js_doc, cb));
 });
 
 gulp.task('test', function(done) {
@@ -416,7 +416,7 @@ gulp.task('inject-popup-html', ['clean-popup-html'], function() {
 });
 
 gulp.task('clean-build-files', ['clean-images', 'clean-fonts', 'clean-videos', 'clean-sass', 'clean-recipes', 'clean-boldchat-js', 'clean-popup-js', 'clean-start-js', 'clean-theme-js', 'clean-index-html', 'clean-popup-html'], function(cb) {
-	rmvEmptyDirs(config.out_dest);
+	return rmvEmptyDirs(config.out_dest);
 });
 
 gulp.task('create-final-build', function() {

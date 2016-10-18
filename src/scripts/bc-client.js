@@ -119,10 +119,18 @@ bc.RpcError = function(message) {
 };
 
 bc.VisitorClient = function(auth) {
-	var aid = auth.substring(0, auth.indexOf(':'));
+	var parts = auth.split(':');
+	var aid = parts[0];
+	var serverSet = null;
+
+	if (parts.length > 3) {
+		serverSet = '-' + parts[3];
+		auth = parts.slice(0,3).join(':');
+	}
+
 	auth = bc.util.base64(auth);
 
-	var apiFrame = new bc.ApiFrame(aid);
+	var apiFrame = new bc.ApiFrame(aid, null, serverSet);
 
 	var events = ['updateChat', 'updateTyper', 'addMessage', 'autoMessage', 'updateBusy', 'beginActiveAssist', 'updateActiveAssist', 'reconnecting', 'chatEndedByOp', 'chatEnded', 'closed'];
 	bc.subscriber(this, events);

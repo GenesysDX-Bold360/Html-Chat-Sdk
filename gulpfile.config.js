@@ -12,7 +12,7 @@ module.exports = function() {
 	var JS_BC_POPUP = 'bc-popup.js';
 
 	// all js to vet
-	var config = {
+	return {
 		base: 'src'
 		, css_src: [SRC_START + '/scss/*.scss', SRC_START + '/themes/**/*.scss']
 		, css_dest: [DEST_START + '**/css/*.css*', DEST_START + '**/themes/**/*.css*']
@@ -40,7 +40,28 @@ module.exports = function() {
 		, video_src: [SRC_START + 'videos/**/*.*', SRC_START + '**/videos/**/*.*']
 		, video_dest: [DEST_START+ 'videos/**/*.*', DEST_START + '**/videos/**/*.*']
 		, zip_src: [DEST_START + 'index.html', DEST_START + 'fonts/**/*.*', DEST_START + 'videos/**/*.*', DEST_START + 'images/**/*.*', DEST_START + 'scripts/**/*.*', '!' + DEST_START + 'themes/bubbles/**/*.*', '!' + DEST_START + 'themes/**/*.zip']
+		, js_doc: {
+			'tags': {
+				'allowUnknownTags': true
+			},
+			'opts': {
+				'destination': './doc'
+			},
+			'plugins': [
+				'plugins/markdown'
+			],
+			'templates': {
+				'cleverLinks': false,
+				'monospaceLinks': false,
+				'default': {
+					'outputSourceFiles': true
+				},
+				'path': 'ink-docstrap',
+				'theme': 'cerulean',
+				'navType': 'vertical',
+				'linenums': true,
+				'dateFormat': 'MMMM Do YYYY, h:mm:ss a'
+			}
+		}
 	};
-
-	return config;
 };
