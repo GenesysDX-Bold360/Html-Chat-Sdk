@@ -231,7 +231,7 @@ bc.googleMap.inheritsFrom(bc.slideOutDiv, 'map');
 bc.googleMap.prototype.getCoordinates = function(message) {
 	bc.bcMapLog('bc.googleMap.prototype:getCoordinates type=' + this.type);
 
-	var mapLatIndex = message.indexOf('/@') + 2;
+	var mapLatIndex = (message.indexOf('/@') !== -1) ? (message.indexOf('/@') + 2) : (message.indexOf('&#64;') + 5);
 	var mapLngIndex = message.indexOf(',', mapLatIndex) + 1;
 	var mapLngIndexEnd = message.indexOf(',', mapLngIndex);
 	var mapLatCoord = message.substr(mapLatIndex, mapLngIndex - mapLatIndex - 1);
@@ -316,7 +316,7 @@ bc.setOverrides = function() {
 	}
 
 	bc.currentSession.viewManager.addOrUpdateMessage = function(messageId, personType, name, time, message, avatar, isReconstitutedMsg, originalText) {
-		if(message.indexOf('/maps/') !== -1 && message.indexOf('/@') !== -1) {
+		if(message.indexOf('/maps/') !== -1 && ((message.indexOf('/@') !== -1) || message.indexOf('&#64;') !== -1)) {
 			var info = null;
 			if(!bc.map.isInitialized) {
 				bc.map = new bc.googleMap(getBcChat(), message);
