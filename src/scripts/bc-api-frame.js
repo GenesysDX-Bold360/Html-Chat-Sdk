@@ -97,7 +97,7 @@ bc.ApiFrame.prototype._receiveApiMessage = function(event) {
 						var pending = context.framePendingResults[i];
 						var time = pending.time;
 						var wait = Math.min(context.retryTimeout * pending.tries, 60000);
-						if (time - current > wait) {
+						if (current - time > wait) {
 							context._callRestObj(pending.rest, pending.tries);
 						}
 					}
@@ -132,8 +132,12 @@ bc.ApiFrame.prototype.call = function(method, params) {
 
 bc.ApiFrame.prototype._callRestObj = function(rest, tries) {
 	if(this.isFrameLoaded) {
-		this.frame.contentWindow.postMessage(JSON.stringify(rest.request), this.frameOrigin);
 		this.framePendingResults[rest.request.id] = {time: new Date().getTime(), rest: rest, tries: (tries || 0) + 1};
+		try {
+			this.frame.contentWindow.postMessage(JSON.stringify(rest.request), this.frameOrigin);
+		} catch (e) {
+			console.log(e);
+		}
 	} else {
 		// iFrame isn't loaded yet, queue the request, they will be called when it is ready.
 		this.frameLoadQueue.push(rest);
