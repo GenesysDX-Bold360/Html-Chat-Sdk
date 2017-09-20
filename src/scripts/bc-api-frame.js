@@ -112,7 +112,7 @@ bc.ApiFrame.prototype._receiveApiMessage = function(event) {
 					delete this.framePendingResults[message.id];
 					pending.rest.callback.finished(message);
 				} else {
-					bc.util.log('** adding to frameLoadQueue : _receiveApiMessage', false, pending);
+					bc.util.log('** pending failed : _receiveApiMessage', message, pending);
 				}
 			}
 		}
