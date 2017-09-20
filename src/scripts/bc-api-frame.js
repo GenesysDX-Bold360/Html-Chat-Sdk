@@ -106,13 +106,13 @@ bc.ApiFrame.prototype._receiveApiMessage = function(event) {
 				this.messageListener(message.method, message.params, message.id);
 			}
 		} else {
-			var rest = this.framePendingResults[message.id];
-			if(rest) {
+			var pending = this.framePendingResults[message.id];
+			if(pending) {
 				if(!message.error) {
 					delete this.framePendingResults[message.id];
-					rest.callback.finished(message);
+					pending.rest.callback.finished(message);
 				} else {
-					bc.util.log('** adding to frameLoadQueue : _receiveApiMessage', false, rest);
+					bc.util.log('** adding to frameLoadQueue : _receiveApiMessage', false, pending);
 				}
 			}
 		}
