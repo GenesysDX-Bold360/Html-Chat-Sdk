@@ -132,7 +132,9 @@ bc.ApiFrame.prototype.call = function(method, params) {
 
 bc.ApiFrame.prototype._callRestObj = function(rest, tries) {
 	if(this.isFrameLoaded) {
-		this.framePendingResults[rest.request.id] = {time: new Date().getTime(), rest: rest, tries: (tries || 0) + 1};
+		if (rest.request.method !== 'connect' && rest.request.method !== 'disconnect') {
+			this.framePendingResults[rest.request.id] = {time: new Date().getTime(), rest: rest, tries: (tries || 0) + 1};
+		}
 		try {
 			this.frame.contentWindow.postMessage(JSON.stringify(rest.request), this.frameOrigin);
 		} catch (e) {
