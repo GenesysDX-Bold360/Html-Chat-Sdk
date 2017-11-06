@@ -1,3 +1,21 @@
+@import "mixins";
+@import "color-constants";
+@import "size-constants";
+
+@supports(padding: constant(safe-area-inset-left)) {
+    div#bc-layered-chat,
+    div#bc-popup-chat {
+        padding-left: constant(safe-area-inset-left);
+        padding-right: constant(safe-area-inset-right);
+        padding-top: constant(safe-area-inset-top);
+        width: 100%;
+    }
+
+    div#bc-chat-actions {
+        padding-bottom: constant(safe-area-inset-bottom);
+    }
+}
+
 #bc-layered-chat,
 #bc-popup-chat {
     height: 100%;

@@ -89,7 +89,7 @@ bc.ApiFrame.prototype._receiveApiMessage = function(event) {
 					this._callRestObj(i);
 					i = this.frameLoadQueue.shift();
 				}
-				
+
 				var context = this;
 				setInterval(function() {
 					var current = new Date().getTime();

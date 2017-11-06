@@ -32,7 +32,7 @@ var bc = bc || {};
 			forcePopup: null,
 
 			addViewportMetaTag: true,
-			viewPortMetaTagContent: 'width=device-width, height=device-height, initial-scale=1, maximum-scale=1.0, user-scalable=no',
+			viewPortMetaTagContent: 'width=device-width, height=device-height, initial-scale=1, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
 
 			displayTypingOperatorImage: true,
 			defaultCompanyLogoLocation: 'images/unknown-customer.png'
