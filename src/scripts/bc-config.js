@@ -4,7 +4,7 @@
  */
 
 
-var bc = bc || {};
+var bc = window.bc = (window.bc || {});
 
 (function() {
 

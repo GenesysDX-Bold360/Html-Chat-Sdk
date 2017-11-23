@@ -39,8 +39,7 @@
  success (result) - The results on success
  failure (message) - The message on failure
  */
-var bc = window.bc || {};
-window.bc = bc;
+var bc = window.bc = (window.bc || {});
 //var bc = bc || {};
 //
 //bc.initializeClientVars = function() {
