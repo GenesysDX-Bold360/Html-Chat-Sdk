@@ -1,4 +1,4 @@
-var bc = bc || {};
+var bc = window.bc = (window.bc || {});
 
 bc.setConfig = function(config, chatParams, visitInfo) {
 	var configCookieValue = bc.util.readCookie(bc.config.configCookie);

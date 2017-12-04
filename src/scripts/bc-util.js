@@ -1,4 +1,4 @@
-var bc = bc || {};
+var bc = window.bc = (window.bc || {});
 
 bc.util = bc.util || {};
 

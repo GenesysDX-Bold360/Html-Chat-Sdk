@@ -1,4 +1,4 @@
-var bc = window.bc || {};
+var bc = window.bc = (window.bc || {});
 
 /**
  * Creates a session storage instance for storing messages for faster chat window rebuild on page transitions.
