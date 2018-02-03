@@ -40,13 +40,6 @@
  failure (message) - The message on failure
  */
 var bc = window.bc = (window.bc || {});
-//var bc = bc || {};
-//
-//bc.initializeClientVars = function() {
-//	'use strict';
-//	//bc.config = bc.config || {};
-//	bc.client = {};
-//};
 
 /* bc.subscriber - Utility function to add event handling methods to the given object for the given events */
 bc.subscriber = function(subscriberObject, events) {

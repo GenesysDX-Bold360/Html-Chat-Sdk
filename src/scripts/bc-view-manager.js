@@ -103,7 +103,7 @@ bc.ViewManager = function(formBuilder) {
 				formContainer.innerHTML = '';
 			}
 			formContainer.appendChild(scope.createdForm.form);
-			formWrapper.setAttribute('data-form-id', Math.random());
+			formWrapper.setAttribute('data-form-id', Math.random().toString());
 			show(formWrapper);
 			scope.scrollToBottom(formWrapper);
 		}
@@ -146,11 +146,11 @@ bc.ViewManager = function(formBuilder) {
 	};
 
 	/**
-	* Hide all visitor and operator messages
-	*/
+	 * Hide all visitor and operator messages
+	 */
 	this.hideMessages = function(element) {
 		var messages = document.querySelectorAll(".bc-msg-vis, .bc-msg-op");
-		for (var i = messages.length - 1; i >= 0; i--) {
+		for(var i = messages.length - 1; i >= 0; i--) {
 			hide(messages[i]);
 		}
 	};
@@ -354,8 +354,6 @@ bc.ViewManager = function(formBuilder) {
 
 	var getPushCode = function(text, performAction, openTarget, messageId) {
 		openTarget = openTarget || '_self';
-		//text = text.replace('<push>', '');
-		//text = text.replace('</push>', '');
 		if(performAction && this.parent && this.parent.opener && this.parent.bcMessageId && this.parent.bcMessageId === messageId) {
 			performAction = false;
 		}
@@ -367,7 +365,7 @@ bc.ViewManager = function(formBuilder) {
 			if(openTarget === '_self') {
 				this.bcMessageId = messageId;
 				if(!this.opener) {
-					if(this.opener && this.opener.top && this.opener.top != this.top) {
+					if(this.opener && this.opener.top && this.opener.top !== this.top) {
 						this.top = this.opener.top;
 					}
 					this.opener = this;
@@ -575,8 +573,8 @@ bc.ViewManager = function(formBuilder) {
 		this.session = session;
 
 		function returnTextWithNoCarriageReturnAtEnd(msg) {
-			if (msg.length > 1) {
-				return msg.substr(0, msg.length - 1) + msg[msg.length - 1].replace(/ {2,}/g,' ').replace(/[\n\r]*/g,'');
+			if(msg.length > 1) {
+				return msg.substr(0, msg.length - 1) + msg[msg.length - 1].replace(/ {2,}/g, ' ').replace(/[\n\r]*/g, '');
 			}
 
 			return msg;
@@ -635,13 +633,6 @@ bc.ViewManager = function(formBuilder) {
 		var printElement = document.getElementById('bc-print');
 		if(printElement) {
 			printElement.addEventListener('click', function() {
-				///*var printContents = document.getElementById('bc-chat-history').innerHTML;
-				// var originalContents = document.body.innerHTML;
-				// popupWin = window.open('', '_blank', 'width=300,height=300');
-				// upWin.document.open()
-				// upWin.document.write('<html><head><link rel="stylesheet" type="text/css" href="style.css" /></head><body onload="window.print()">' + printContents + '</html>');
-				// upWin.document.close();
-				// */
 				window.print();
 			});
 		}
