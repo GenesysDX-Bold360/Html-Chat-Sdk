@@ -224,6 +224,18 @@ bc.VisitorClient = function(auth) {
 		});
 	};
 
+	scope.getLastMessageId = function() {
+		return sessionStorage.getLastMessageId();
+	};
+
+	scope.isMinimized = function() {
+		return sessionStorage && sessionStorage.getMinimizedStatus();
+	};
+
+	scope.changeMinimizedStatus = function(isMinimized) {
+		return sessionStorage.changeMinimizedStatus(isMinimized);
+	};
+
 	scope.chatContainsStatusMessage = false;
 	var updateOperatorMessageFlag = function(data) {
 		if(!scope.chatContainsStatusMessage && data.PersonType && data.PersonType === 'operator') {

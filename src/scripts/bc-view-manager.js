@@ -240,11 +240,23 @@ bc.ViewManager = function(formBuilder) {
 
 	this.notifyMinimizeButton = function() {
 		'use strict';
-		var minimizeChatButton = document.getElementById('bc-minimized-indicator');
-		bc.util.removeClass(minimizeChatButton, 'bc-notify');
-		setTimeout(function() {
-			bc.util.addClass(minimizeChatButton, 'bc-notify');
-		}, 200);
+
+		if(scope.session.isMinimized) {
+			var minimizedIndicator = document.getElementById('bc-minimized-indicator');
+			bc.util.removeClass(minimizedIndicator, 'bc-notify');
+			return setTimeout(function() {
+				bc.util.addClass(minimizedIndicator, 'bc-notify');
+			}, 200);
+		}
+
+		return null;
+	};
+
+	this.minimizeChat = function() {
+		'use strict';
+
+		var minimizeChatButton = document.getElementById('bc-min-chat');
+		minimizeChatButton.click();
 	};
 
 	var getOperatorImage = function(operatorAvatar) {
@@ -675,6 +687,7 @@ bc.ViewManager = function(formBuilder) {
 			minimizeChatButton.addEventListener('click', function() {
 				bc.util.removeClass(minimizedIndicator, 'bc-notify');
 				bc.util.addClass(layeredChatElem, 'bc-minimized');
+				scope.session.changeMinimizedStatus(true);
 			});
 		}
 
@@ -682,6 +695,7 @@ bc.ViewManager = function(formBuilder) {
 			minimizedIndicator.addEventListener('click', function() {
 				bc.util.removeClass(minimizedIndicator, 'bc-notify');
 				bc.util.removeClass(layeredChatElem, 'bc-minimized');
+				scope.session.changeMinimizedStatus(false);
 			});
 		}
 
