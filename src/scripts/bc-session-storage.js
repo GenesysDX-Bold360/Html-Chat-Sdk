@@ -56,7 +56,8 @@ bc.SessionStorage = function(chatKey) {
 				queueIndicator: {},
 				chatParams: {},
 				visitInfo: {},
-				lastUpdated: new Date()
+				lastUpdated: new Date(),
+				isMinimized: 'false'
 			};
 		}
 	};
@@ -88,7 +89,6 @@ bc.SessionStorage = function(chatKey) {
 			storage.chat.messages.push(newMessage);
 			messageIndex[messageId] = storage.chat.messages.length - 1;
 			storage.chat.lastMessageId = messageId;
-
 		}
 		saveStorage();
 	};
@@ -113,6 +113,15 @@ bc.SessionStorage = function(chatKey) {
 	 */
 	this.getLastMessageId = function() {
 		return storage.chat.lastMessageId;
+	};
+
+	this.getMinimizedStatus = function() {
+		return storage.chat.isMinimized;
+	};
+
+	this.changeMinimizedStatus = function(isMinimized) {
+		storage.chat.isMinimized = isMinimized;
+		saveStorage();
 	};
 
 	/**

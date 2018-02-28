@@ -19,6 +19,16 @@ bc.startSession = function(chatParams, visitInfo, hideChatWindow) {
 
 		bc.currentSession = new bc.Session(bc.config.sessionApiKey, chatParams, visitInfo, viewManager);
 		bc.currentSession.startChat();
+
+		var isMinimized = bc.currentSession.isMinimized();
+		if(isMinimized) {
+			bc.currentSession.minimizeChat();
+			setTimeout(function() {
+				chatContainerElement.style.visibility = 'visible';
+			}, 500);
+		} else {
+			chatContainerElement.style.visibility = 'visible';
+		}
 	}
 };
 
@@ -132,7 +142,7 @@ bc.openChat = function(chatParams, visitInfo) {
 			bc.util.loadJavascript(chatContainerElement, startSession);
 			bc.util.log('afterLoadJavascript');
 			document.body.appendChild(chatContainerElement);
-			chatContainerElement.style.visibility = 'visible';
+			chatContainerElement.style.visibility = 'hidden';
 		}
 	};
 
@@ -239,7 +249,6 @@ bc.openChat = function(chatParams, visitInfo) {
 		}
 	};
 
-	// TODO: remove random parameter, so local caching works
 	if(!window.bcChatOpen) {
 		if(!bc.config.forcePopup) {
 			fetchWindow(bc.config.chatWindowUrl, showChatWindow);

@@ -1,5 +1,5 @@
 /** @namespace */
-var bc = window.bc = (window.bc || {});
+var bc = bc || {};
 
 /**
  * An instance of {@link bc.Session}
@@ -33,6 +33,9 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 	var scope = this;
 	var queuePosition = 0;
 	var answerTimeout = null;
+	var minimizeTimeout = null;
+	var canAddMinimizeClass = false;
+	var seenLastMessageId = 0;
 
 	this.viewManager = viewManager;
 	this.client = new bc.VisitorClient(apiKey);
@@ -226,10 +229,10 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 					}
 				})
 				.failure(function(msg) {
-					clearTimeout(confirmIframeLoaded);
-					failure(msg);
-				}
-			);
+						clearTimeout(confirmIframeLoaded);
+						failure(msg);
+					}
+				);
 		}
 	};
 
@@ -359,7 +362,6 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 		if(data.Values.Ended) {
 			scope.viewManager.hideChatInteraction();	//TODO: This gets invoked multiple times when a chat is ended... ineffecient
 		}
-		scope.viewManager.notifyMinimizeButton();
 	};
 
 	/**
@@ -386,6 +388,19 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 		var avatar = data.Values.ImageURL || scope.client.getPerson(data.Values.PersonID).Avatar;
 		var name = data.Values.Name || scope.client.getPerson(data.Values.PersonID).Name || scope.getOperatorName();
 		scope.viewManager.addOrUpdateMessage(data.MessageID, data.Values.PersonType, name, new Date(data.Values.Created), data.Values.Text, avatar, data.Values.IsReconstitutedMsg, data.Values.OriginalText);
+
+		if(minimizeTimeout) {
+			clearTimeout(minimizeTimeout);
+			minimizeTimeout = null;
+		}
+		var lastMessageId = scope.client.getLastMessageId();
+		if((canAddMinimizeClass && seenLastMessageId !== lastMessageId) || !lastMessageId) {
+			minimizeTimeout = scope.viewManager.notifyMinimizeButton();
+		}
+		canAddMinimizeClass = lastMessageId === data.MessageID;
+		if(canAddMinimizeClass) {
+			seenLastMessageId = lastMessageId;	// This is required as when you refresh the page, the last message is sent twice from the server.
+		}
 	};
 
 	/**
@@ -425,7 +440,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 	var updateVisitorInfo = function(visitorInfo) {
 		if(visitorInfo.name) {
 			scope.visitorInfo.name = visitorInfo.name;
-		} else if (visitorInfo.first_name) {
+		} else if(visitorInfo.first_name) {
 			scope.visitorInfo.name = visitorInfo.first_name;
 		}
 		if(visitorInfo.last_name) {
@@ -577,6 +592,19 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 				scope.viewManager.hideForm();
 			}, null, null, true);
 		}
+	};
+
+	this.minimizeChat = function() {
+		clearTimeout(minimizeTimeout);
+		scope.viewManager.minimizeChat();
+	};
+
+	this.changeMinimizedStatus = function(isMinimized) {
+		scope.client.changeMinimizedStatus(isMinimized);
+	};
+
+	this.isMinimized = function() {
+		return scope.client.isMinimized();
 	};
 
 	//this._emailChatHistory = function(data) {
