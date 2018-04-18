@@ -151,6 +151,7 @@ bc.FormBuilder = function(localizer) {
 		var form = document.createElement('form');
 		var formItems = {};
 		form.setAttribute('class', 'bc-form');
+		form.setAttribute('novalidate', '');
 
 		var validator = bc.util.createElement('div', {class: 'bc-validator', style: 'display: none'});
 		var reqSuffix = requiredFieldLabelSuffix || ' *';
@@ -581,27 +582,19 @@ bc.FormBuilder = function(localizer) {
 		};
 
 		var addGeneralSubmitOnEnter = function() {
-			if(introKey === 'api#prechat#intro') {
-				form.addEventListener('keyup', function(e) {
-					if(e.keyCode === 13) {
-						if(e.preventDefault) {
-							e.preventDefault();
-						}
-						submitFormItems();
-						return false;
-					}
-				});
-			}
+			form.addEventListener('submit', function(e) {
+				e.preventDefault();
+				submitFormItems();
+			});
 		};
 
 		var createSubmitButton = function(textKey) {
 			var submitBtn = bc.util.createElement('button', {
-				type: 'button',
+				type: 'submit',
 				class: 'bc-action-button bc-button',
 				'data-l10n': textKey
 			});
 			submitBtn.innerHTML = '<span class="bc-action-button-span">' + localizer.getLocalizedValue(textKey) + '</span>';
-			submitBtn.addEventListener('click', submitFormItems);
 			addGeneralSubmitOnEnter();
 			return submitBtn;
 		};
