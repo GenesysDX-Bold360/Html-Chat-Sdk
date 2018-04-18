@@ -333,7 +333,7 @@ bc.VisitorClient = function(auth) {
 			return new bc.RpcError('You can only call createChat once');
 		}
 
-		return call('createChat', {
+		var params = {
 			VisitorID: visitorID,
 			Language: language,
 			IncludeBrandingValues: true,
@@ -343,7 +343,14 @@ bc.VisitorClient = function(auth) {
 			ButtonID: button,
 			ChatUrl: url,
 			CustomUrl: customUrl
-		})
+		};
+
+		var recoverParams = parseChatRecoverCookie();
+		if (recoverParams) {
+			params.ChatKey = recoverParams.chatKey;
+		}
+
+		return call('createChat', params)
 			.failure(onFailure)
 			.success(function(result) {
 				if(typeof bc.setOverrides === 'function') {
@@ -627,6 +634,17 @@ bc.VisitorClient = function(auth) {
 			sessionStorage.setPeople(people);
 		}
 	};
+
+	function parseChatRecoverCookie() {
+		var value = bc.util.readRawCookie(bc.config.chatRecoverCookie);
+		if(value) {
+			var parts = value.split(':');
+			return {
+				chatKey: parts[0]
+			};
+		}
+		return null;
+	}
 
 	scope.setEmailTranscript = function(emailAddress) {
 		if(state !== 'started') {

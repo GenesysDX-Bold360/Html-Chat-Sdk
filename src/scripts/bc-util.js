@@ -38,6 +38,16 @@ bc.util.createCookie = function(name, value, days) {
  * @returns {string} - The value of the cookie
  */
 bc.util.readCookie = function(name) {
+	var value = bc.util.readRawCookie(name);
+	return value ? decodeURIComponent(value) : null;
+};
+
+/**
+ * Gets the raw value of a cookie by name
+ * @param {string} name - The name of the cookie to retrieve
+ * @returns {string} - The raw value of the cookie
+ */
+bc.util.readRawCookie = function(name) {
 	var nameEQ = encodeURIComponent(name) + '=';
 	var ca = document.cookie.split(';');
 	for(var i = 0; i < ca.length; i++) {
@@ -46,7 +56,7 @@ bc.util.readCookie = function(name) {
 			c = c.substring(1, c.length);
 		}
 		if(c.indexOf(nameEQ) === 0) {
-			return decodeURIComponent(c.substring(nameEQ.length, c.length));
+			return c.substring(nameEQ.length, c.length);
 		}
 	}
 	return null;
@@ -203,10 +213,9 @@ bc.util.loadJavascript = function(element, callback) {
  * @returns {string} - The new ID
  */
 bc.util.getId = function(accountId) {
-	if(!accountId || accountId.match(/[^0-9-]/)) {
-		accountId = new Date().getTime() / Math.random() * 1e4;
-	}
-	return Math.floor(parseFloat(accountId) * 99 / 1e6 + (new Date().getTime() - 1.3328e12) + Math.random() * 1e6) + '' + Math.floor(1e3 + Math.random() * (1e4 - 1e3));
+	// max Long value is: 9223372036854775807
+	var highValue = Math.floor(Math.random() * 9223372037);
+	return ((highValue === 0) ? '' : highValue) + '' + Math.floor(Math.random() * ((highValue === 9223372036) ? 854775808 : 1000000000));
 };
 
 bc.util._base64 = {};

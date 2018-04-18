@@ -18,6 +18,7 @@ var bc = window.bc = (window.bc || {});
 			sessionApiKey: null,
 			messageCache: true,
 			chatCookie: '_bcck',
+			chatRecoverCookie: '_bc-curl',
 			configCookie: '_bccfg',
 			chatWindowUrl: '',
 
