@@ -39,9 +39,6 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 
 	this.viewManager = viewManager;
 	this.client = new bc.VisitorClient(apiKey);
-	this._chatIsAvailable = false;
-	this._unavailableReason = null;
-	this._lastAvailabilityCheck = 0;
 	this.chatParams = chatParams || {};
 	this.visitorInfo = visitorInfo || {};
 
@@ -81,23 +78,16 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 
 	//noinspection Eslint
 	/**
-	 * Gets the availability for chat, this should be called no more often than every 5 minutes.
+	 * Gets the availability for chat.
 	 * @param {function} onChatAvailability - The callback with the availability status, 2 values will be passed, a boolean indicating availability, and if the boolean is false a string will be return with unavailable reason.
 	 * @param {function} onChatAvailabilityFailed - The callback if the availability check fails.
 	 */
 	this.getChatAvailability = function(onChatAvailability, onChatAvailabilityFailed) {
-		var currentTime = new Date().getTime();
-		if(currentTime - this._lastAvailabilityCheck > 300000) {
-			this.client.getChatAvailability(scope.getVisitorId())
-				.success(function(data) {
-					scope._lastAvailabilityCheck = currentTime;
-					scope._chatIsAvailable = data.Available;
-					scope._unavailableReason = data.UnavailableReason;
-					onChatAvailability(data.Available, data.UnavailableReason);
-				})
-				.failure(failure);
-			onChatAvailability(this._chatIsAvailable, this._unavailableReason);
-		}
+		this.client.getChatAvailability(scope.getVisitorId())
+			.success(function(data) {
+				onChatAvailability(data.Available, data.UnavailableReason);
+			})
+			.failure(onChatAvailabilityFailed);
 	};
 
 	var displayUnavailableForm = function(response) {
