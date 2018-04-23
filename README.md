@@ -47,8 +47,8 @@ The zip file in this repository contains two versions of each included theme:
     *       /root/themes/hubris
     *       /root/themes/lovato
     *       /root/themes/nightshade
-    
-    * **Notes** 
+
+    * **Notes**
         * Each theme contains two zip files:
             * One is minified, the other is an unminified version.
             * Each copy contains the files that are specific to that theme, as well as the root files necessary to make that theme work. As such, each theme contains a duplicate of the root files.
@@ -78,13 +78,13 @@ The zip file in this repository contains two versions of each included theme:
 
 ## Building from source
 
-These files are built using [NPM](https://nodejs.org/) & [Gulp](http://gulpjs.com/). You must install NodeJs as well as gulp. 
+These files are built using [NPM](https://nodejs.org/) & [Gulp](http://gulpjs.com/). You must install NodeJs as well as gulp.
 
 The SDK bundle comes with three files to get you started with the build process:
  - gulpfile.js
  - gulpfile.config.js
  - package.json:
- 
+
 The package.json file contains a scripts object that provides various build options. However, if this is your initial build, we suggest you run the following command to download everything necessary for your project:
 ```javascript
 npm run build
@@ -103,13 +103,13 @@ npm install && gulp
 	 - **minify-all-js**: See below.
  - **minify-all-js**: Depending on build arguments, this option minifies, uglifies or concatenates the JavaScript files according to their usage, then places them in their respective location.
 	 - **minify-theme-js**: Theme js files are optional that serve to override existing functionality.
-	 - **minify-boldchat-js**: Boldchat js files are the core HTML SDK files, used by both Popup and Layered Chat Windows. 
+	 - **minify-boldchat-js**: Boldchat js files are the core HTML SDK files, used by both Popup and Layered Chat Windows.
 	 - **minify-start-js**: Place Start js files on your existing site/page where you want to use the HTML SDK Chat Window. These files include the utility functions used by the other files, the configuration files as well as a start-sdk file that handles the opening of the windows themselves.
 	 - **minify-popup-js**: These files are used exclusively by Popup Windows. The minify-start-js files are included besides the necessary popup file.
- - **build-html-files**: Our gulp process uses gulp-inject as a means to build the appropriate output files. Each theme can be opened in either a layered or popup window mode. To prevent duplication of effort on developments part, the popup.html files (under each theme) are created at build time. The 'template' for each popup is the index.html file under each theme. For example, building build-html-files would take the themes/hubris/index.html file and extract the html to build the themes/hubris/popup.html file. 
+ - **build-html-files**: Our gulp process uses gulp-inject as a means to build the appropriate output files. Each theme can be opened in either a layered or popup window mode. To prevent duplication of effort on developments part, the popup.html files (under each theme) are created at build time. The 'template' for each popup is the index.html file under each theme. For example, building build-html-files would take the themes/hubris/index.html file and extract the html to build the themes/hubris/popup.html file.
 	 - **inject-index-html**: Injects the necessary JavaScript and CSS files into their appropriate tag placeholders, depending on build arguments.
 	 - **inject-popup-html**: Injects the necessary JavaScript and CSS files into their appropriate tag placeholders, depending on build arguments. It also copies the index.html and inserts into appropriate place in popup.html
- - Running the default gulp task executes 'build-requirements', 'build-html-files' and finally 'js-doc'. 
+ - Running the default gulp task executes 'build-requirements', 'build-html-files' and finally 'js-doc'.
 	 - **js-doc**: Creates a help document from the JavaScript files.
 
 ####There are various gulp arguments you can pass to the gulp build process:
@@ -118,7 +118,7 @@ npm install && gulp
 	- For example, the index.html file includes various comment tags used by the build process, such as:
 		- `<!-- inject:boldchat:js -->`
 		- The HTML build processes (inject-index and inject-popup) check whether the --prod argument has been passed. If so, the getBoldchatJsSource function retrieves the source files (js_bc) to be used as the gulp source, and builds a final concatenated file named boldchat.js, resulting in a single JavaScript file instead of nine.
-- **--min**: Used in conjuction with the --prod argument to further minify JavaScript and CSS files.
+- **--min**: Used in conjunction with the --prod argument to further minify JavaScript and CSS files.
 - **--minhtml**: Minifies the HTML file(s).
 
 
@@ -131,7 +131,7 @@ npm install && gulp
 <script type="text/javascript">
 	window._bcChatWindowUrl = 'themes/{theme name here}';
 	window._bcSessionApiKey = '{your api key here}';
-	window._bcForcePopup = false; 
+	window._bcForcePopup = false;
 </script>
 ```
 
@@ -141,9 +141,9 @@ As an alternative method, you can also set up a different bc-config file for eac
 
 ##### Layered vs Popup Windows
 There is a certain hierarchy associated with how a window is opened. Window Definitions are determined by the API Key. Learn more about the Chat Window Definition on [our help site](http://help.boldchat.com/help/BoldChat/c_bc_chatwindow_about.html).
-If you have defined a window to the api key, then the window definition (the pre and post chat fields, for example) come from that defined window. If, however, you don't have one associated to the API key, the window definition will be the default window. 
+If you have defined a window to the api key, then the window definition (the pre and post chat fields, for example) come from that defined window. If, however, you don't have one associated to the API key, the window definition will be the default window.
 
-This is for all fields defined, WITH THE EXECEPTION of the layered/popup definition. The layered/popup is defined via whatever button the visitor invoked (i.e. the floating button, static chat button or invitation) on the page. 
+This is for all fields defined, WITH THE EXECEPTION of the layered/popup definition. The layered/popup is defined via whatever button the visitor invoked (i.e. the floating button, static chat button or invitation) on the page.
 However, you can also force popup or layered by the setting of the following property (on your page):
 ```html
 <script type="text/javascript">
@@ -170,7 +170,7 @@ The index.html files in the themes is what gets injected into the host page when
  - **#bc-msg-op-template** - The template element for operator messages.  This element gets copied and added to the #bc-chat-history container when a new operator message arrives.
  - **#bc-msg-vis-template** - The template element for visitor messages.  This element gets copied and added to the #bc-chat-history container when a new visitor message is sent.
  - **#bc-msg-sys-template** - Some messages are sent by the BoldChat system (non-human). When one of these messages arrives this element is copied and added to the #bc-chat-history container.
- - **#bc-status-msg** - This element isn't a template but will be shown or hidden when a status message needs to be shown to the user. 
+ - **#bc-status-msg** - This element isn't a template but will be shown or hidden when a status message needs to be shown to the user.
  - **#bc-form-container** - This container will be emptied and a dynamically generated HTML form will be added to it by bc-form-builder.
  - **#bc-typing** - This container will be hidden or shown depending on the typing status of an operator.  If a #bc-typers element exists the name of the typers will be put inside it.
  - **#bc-queue-wrap** - If the chat is in a queue then this element will be shown.
@@ -180,9 +180,9 @@ The index.html files in the themes is what gets injected into the host page when
 ##### Example Customization: 3rd Party Survey
 In this example customization we want to embed a 3rd party survey (e.g. surveymonkey or surveygizmo) instead of the BoldChat post-chat survey. The example survey will be embedded in an iframe, but could just as easily be fully customized html that submits to your own servers.
 
-One way you could accomplish this would be to directly modify bc-session, and instead of showing a post-chat survey when a chat ends instead show the 3rd party survey.  
+One way you could accomplish this would be to directly modify bc-session, and instead of showing a post-chat survey when a chat ends instead show the 3rd party survey.
 
-Another way to accomplish this would be to create a bc.setOverrides function, which allows for overriding of any methods in bc-session, bc-view-manager, or bc-form-builder.  Since any method can be overriden we will override the post-chat survey with our own survey.
+Another way to accomplish this would be to create a bc.setOverrides function, which allows for overriding of any methods in bc-session, bc-view-manager, or bc-form-builder.  Since any method can be overridden we will override the post-chat survey with our own survey.
 
 ```javascript
 // Ensure the bc object is created to prevent loading order problems
@@ -226,4 +226,3 @@ To quickly get started, simply include the following two lines of code on your p
 Recipe Notes:
 * To use a recipe, copy the recipe from the src to the theme folder you are working in (if you are just using the individual themes)
 * If you want the recipes to work on the popup, you must also include the file above on the popup.html under each theme.
-
