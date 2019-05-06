@@ -87,3 +87,45 @@ div.bcFloat {
     font-size: .75em;
 }
 
+/* confirmation dialog generic styles */
+.bc-confirm-dialog {
+  text-align: center;
+  background-color: $echo;
+  color: $alfa;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 50px 20px;
+  padding: 20px;
+}
+
+.bc-confirm-message {
+  display: block;
+  margin: 0 0 10px;
+}
+
+.bc-confirm-button {
+  margin: 0 5px;
+}
+
+/* cancellable message styles */
+.bc-message-bar {
+  text-align: center;
+  background-color: $echo;
+  color: $alfa;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 50px 20px;
+  padding: 10px;
+}
+
+.bc-message-bar-text {
+  display: inline-block;
+  font-weight: normal;
+  margin: 0 5px 0 0;
+}

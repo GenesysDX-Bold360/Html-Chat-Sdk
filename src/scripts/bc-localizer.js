@@ -58,8 +58,13 @@ bc.Localizer = function(localizationValues) {
 
 					switch(e.nodeName) {
 						case 'LABEL':
+							var requiredIndicator = e.querySelector('.bc-required-indicator');
 							if(!e.children.length) {
 								e.innerHTML = text;
+							}
+							else if(requiredIndicator && e.children.length === 1) {
+								e.innerHTML = text;
+								e.appendChild(requiredIndicator);
 							}
 							else {
 								bc.util.log('Not implemented', true);

@@ -18,7 +18,8 @@
     @include bc-box-shadow(0 0 10px 6px $bc-color-box-shadow-dark-40);
 }
 
-#bc-send-msg-btn {
+#bc-send-msg-btn,
+#bc-send-file-btn {
     height: 56px;
     width: 70px;
     font-weight: bold;

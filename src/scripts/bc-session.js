@@ -170,6 +170,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 		if(this.client.hasChatKey()) {
 			this.client.startChat()
 				.success(function(startData) {
+					scope.chatWindowSettings = scope.client.getChatWindowSettings();
 					scope.viewManager.showChatForm();
 					scope.viewManager.hideBusy();
 					scope.chatParams = scope.client.getChatParams();
@@ -206,6 +207,10 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 					if(scope.visitorInfo) {
 						scope.client.addVisitInfo(scope.visitorInfo);
 					}
+
+					// set default chat window settings
+					scope.client.setChatWindowSettings(chatData.ChatWindowSettings);
+					scope.chatWindowSettings = scope.client.getChatWindowSettings();
 
 					scope.viewManager.hideBusy();
 					if(chatData.PreChat) {
@@ -316,6 +321,8 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 						scope._processChatEndData();
 					});
 		}
+
+		scope.unsubscribeFromClientEvents();
 	};
 
 	/**
@@ -391,6 +398,11 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 		if(canAddMinimizeClass) {
 			seenLastMessageId = lastMessageId;	// This is required as when you refresh the page, the last message is sent twice from the server.
 		}
+
+		// Workaround: ensure that activeassist status bar will be hidden immediately when Agent ends Co-Browse session
+		if (!data.Values.IsReconstitutedMsg && data.Values.PersonType === bc.PersonType.System && data.Values.Text && data.Values.Text.indexOf('Co-browse canceled') > -1) {
+			scope.viewManager.hideCancellableMessage();
+		}
 	};
 
 	/**
@@ -401,6 +413,58 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 	this._autoMessage = function(data) {
 		scope.client.chatContainsStatusMessage = true;
 		scope.viewManager.showStatusMessage(data.Text);
+	};
+
+	/**
+	 * Handles RemoteControl invitation by showing the confirmation dialog
+	 * @private
+	 */
+	this._showRemoteControlPrompt = function() {
+		var dialogParams = {
+			prompt: scope.viewManager.getLocalizedValue('api#activeassist#prompt'),
+			confirm: scope.viewManager.getLocalizedValue('api#generic#yes'),
+			cancel: scope.viewManager.getLocalizedValue('api#generic#no')
+		};
+		scope.viewManager.showConfirmationDialog(dialogParams, function(confirmed) {
+			if (confirmed) {
+				scope.client.acceptRemoteControl();
+			} else {
+				scope.client.declineRemoteControl();
+			}
+		});
+	};
+
+	/**
+	 * Handles Co-Browse invitation by showing the confirmation dialog
+	 * @param {object} data - The data from the OSS message
+	 * @private
+	 */
+	this._showCoBrowsePrompt = function() {
+		var dialogParams = {
+			prompt: 'Would you like to allow the operator to start a cobrowse session with your computer?',
+			confirm: scope.viewManager.getLocalizedValue('api#generic#yes'),
+			cancel: scope.viewManager.getLocalizedValue('api#generic#no')
+		};
+		scope.viewManager.showConfirmationDialog(dialogParams, function(confirmed) {
+			if (confirmed) {
+				scope.client.acceptActiveAssist();
+				scope._showCoBrowseStatus();
+			} else {
+				scope.client.declineActiveAssist();
+			}
+		});
+	};
+
+	/**
+	 * Presents current Co-Browse status message with "Cancel" button
+	 * @param {object} data - The data from the OSS message
+	 * @private
+	 */
+	this._showCoBrowseStatus = function() {
+		scope.viewManager.showCancellableMessage(scope.viewManager.getLocalizedValue('api#activeassist#message'), scope.viewManager.getLocalizedValue('api#generic#cancel'), function() {
+			scope.client.cancelActiveAssist();
+			scope.viewManager.hideCancellableMessage();
+		});
 	};
 
 	/**
@@ -597,17 +661,31 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 		return scope.client.isMinimized();
 	};
 
-	//this._emailChatHistory = function(data) {
-	//	scope.viewManager.hideChatInteraction();
-	//};
+	this.subscribeToClientEvents = function() {
+		scope.client.updateChat(scope._updateChat);
+		scope.client.updateTyper(scope._updateTyper);
+		scope.client.autoMessage(scope._autoMessage);
+		scope.client.updateBusy(scope._updateBusyQueue);
+		scope.client.addMessage(scope._addMessage);
+		scope.client.chatEnded(scope._chatEnded);
+		scope.client.chatEndedByOp(scope._chatEndedByOp);
+		scope.client.beginRemoteControl(scope._showRemoteControlPrompt);
+		scope.client.beginActiveAssist(scope._showCoBrowsePrompt);
+		scope.client.resumeActiveAssist(scope._showCoBrowseStatus);
+	};
 
-	this.client.updateChat(this._updateChat);
-	this.client.updateTyper(this._updateTyper);
-	this.client.autoMessage(this._autoMessage);
-	this.client.updateBusy(this._updateBusyQueue);
-	this.client.addMessage(this._addMessage);
-	this.client.chatEnded(this._chatEnded);
-	this.client.chatEndedByOp(this._chatEndedByOp);
-	//this.client.emailChatHistory(this._emailChatHistory);
+	this.unsubscribeFromClientEvents = function() {
+		scope.client.unsubscribe('updateChat', scope._updateChat);
+		scope.client.unsubscribe('updateTyper', scope._updateTyper);
+		scope.client.unsubscribe('autoMessage', scope._autoMessage);
+		scope.client.unsubscribe('updateBusy', scope._updateBusyQueue);
+		scope.client.unsubscribe('addMessage', scope._addMessage);
+		scope.client.unsubscribe('chatEnded', scope._chatEnded);
+		scope.client.unsubscribe('chatEndedByOp', scope._chatEndedByOp);
+		scope.client.unsubscribe('beginRemoteControl', scope._showRemoteControlPrompt);
+		scope.client.unsubscribe('beginActiveAssist', scope._showCoBrowsePrompt);
+		scope.client.unsubscribe('resumeActiveAssist', scope._showCoBrowseStatus);
+	};
 
+	this.subscribeToClientEvents(this.client);
 };

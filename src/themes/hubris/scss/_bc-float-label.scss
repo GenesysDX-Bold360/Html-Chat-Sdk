@@ -62,9 +62,6 @@
 
     label {
         color: $storm;
-        position: absolute;
-        top: 5px;
-        left: 9px;
         font-size: 15px;
         font-weight: normal;
         @include bc-transition(0.2s ease-in-out);

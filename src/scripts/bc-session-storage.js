@@ -57,7 +57,8 @@ bc.SessionStorage = function(chatKey) {
 				chatParams: {},
 				visitInfo: {},
 				lastUpdated: new Date(),
-				isMinimized: 'false'
+				isMinimized: 'false',
+				chatWindowSettings: {}
 			};
 		}
 	};
@@ -175,6 +176,31 @@ bc.SessionStorage = function(chatKey) {
 
 	this.getPeople = function() {
 		return storage.people || {};
+	};
+
+	this.setClientData = function(data) {
+		storage.clientData = storage.clientData || {};
+
+		for (var key in data) {
+			if (data.hasOwnProperty(key)) {
+				storage.clientData[key] = data[key];
+			}
+		}
+
+		saveStorage();
+	};
+
+	this.getClientData = function() {
+		return storage.clientData;
+	};
+
+	this.setChatWindowSettings = function(data) {
+		storage.chatWindowSettings = data;
+		saveStorage();
+	};
+
+	this.getChatWindowSettings = function() {
+		return storage.chatWindowSettings;
 	};
 
 	initialize();

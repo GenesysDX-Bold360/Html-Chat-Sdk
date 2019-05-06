@@ -85,6 +85,10 @@ div.bc-input-placeholder > label {
     color: $echo;
 }
 
+.bc-input-placeholder select + label {
+    position: static;
+}
+
 /***** End of Input Elements *****/
 
 .bc-button {

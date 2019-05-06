@@ -12,6 +12,7 @@ var bc = window.bc = (window.bc || {});
  */
 bc.FormBuilder = function(localizer) {
 
+	var defaultRequiredSuffix = ' *';
 	var scope = this;
 	var createContainer = function(className) {
 		var util = bc.util;
@@ -25,13 +26,27 @@ bc.FormBuilder = function(localizer) {
 		var tmpE = bc.util.isNodeList(e) ? e[0] : e;
 		tmpE.name = tmpE.id;
 
-		var labelForInputPlaceholder = bc.util.createElement('label', {
+		var placeholderText = placeholder;
+		if(placeholderSuffix && placeholderSuffix !== defaultRequiredSuffix) {
+			placeholderText += placeholderSuffix;
+		}
+
+		var labelForInputAttributes = {
 			'class': 'bc-input-label',
-			'for': tmpE.id,
-			'data-l10n': placeholderKey
-		}, placeholder + (placeholderSuffix || ''));
+			'for': tmpE.id
+		};
+		if (placeholderKey) {
+			labelForInputAttributes['data-l10n'] = placeholderKey;
+		}
+		var labelForInputPlaceholder = bc.util.createElement('label', labelForInputAttributes, placeholderText);
+
 		if(placeholderSuffix) {
-			labelForInputPlaceholder.setAttribute('data-l10n-suffix', placeholderSuffix);
+			if(placeholderSuffix === defaultRequiredSuffix) {
+				var requiredIndicator = bc.util.createElement('span', { 'class': 'bc-required-indicator', 'aria-hidden': true }, defaultRequiredSuffix);
+				labelForInputPlaceholder.appendChild(requiredIndicator);
+			} else {
+				labelForInputPlaceholder.setAttribute('data-l10n-suffix', placeholderSuffix);
+			}
 		}
 
 		var inputPlaceholder = bc.util.createElement('div', {class: 'bc-input-placeholder'});
@@ -154,7 +169,7 @@ bc.FormBuilder = function(localizer) {
 		form.setAttribute('novalidate', '');
 
 		var validator = bc.util.createElement('div', {class: 'bc-validator', style: 'display: none'});
-		var reqSuffix = requiredFieldLabelSuffix || ' *';
+		var reqSuffix = requiredFieldLabelSuffix || defaultRequiredSuffix;
 
 		var getValue = function(e) {
 			if(e) {
@@ -170,6 +185,10 @@ bc.FormBuilder = function(localizer) {
 					return e.value;
 				}
 			}
+		};
+
+		var getRandomId = function() {
+			return (((1 + Math.random()) * 0x10000) | 0).toString(16);
 		};
 
 		var validateEmail = function(email) {
@@ -258,7 +277,7 @@ bc.FormBuilder = function(localizer) {
 		};
 
 		var registerFormItem = function(e, key, required, label, labelKey, ValidationKeyGroup, ValidationFunc) {
-			var elementId = 'bc-input-' + (((1 + Math.random()) * 0x10000) | 0).toString(16);
+			var elementId = 'bc-input-' + getRandomId();
 			var register = true;
 
 			e.id = elementId;
@@ -295,14 +314,19 @@ bc.FormBuilder = function(localizer) {
 
 		var createEmailInputLabel = function(emailInputElement, data, key) {
 			var emailContainer = document.createElement('div');
+			var helpMessageId = 'bc-help-' + getRandomId();
+
 			emailContainer.appendChild(bc.util.createElement('div', {
-				class: 'bc-help-message',
+				'class': 'bc-help-message',
+				'id': helpMessageId,
 				'data-l10n': key
 			}));
 			emailContainer.appendChild(emailInputElement);
-			if(data.Value && data.Value.length > 0) {
-				var emailInput = emailInputElement.querySelector('input');
-				if(emailInput) {
+
+			var emailInput = emailInputElement.querySelector('input');
+			if(emailInput) {
+				emailInput.setAttribute('aria-labelledby', helpMessageId);
+				if(data.Value && data.Value.length > 0) {
 					emailInput.value = data.Value;
 					emailInput.className += ' bc-not-empty';
 				}
@@ -312,7 +336,7 @@ bc.FormBuilder = function(localizer) {
 		};
 
 		var createInput = function(data, type) {
-			var e = bc.util.createElement('input', {type: type, value: data.Value || ''});
+			var e = bc.util.createElement('input', {type: type, value: data.Value || '', 'aria-required': !!data.Required});
 			e.addEventListener('change', function() {
 				// Used for css placeholder hiding/showing
 				bc.util.toggleClass(this, 'bc-not-empty', !!this.value);
@@ -331,7 +355,7 @@ bc.FormBuilder = function(localizer) {
 			registerFormItem(e, data.Key, !!data.Required, data.Label, data.LabelBranding, validationGroupKey, validationFunc);
 
 			if(data.Label) {
-				e = scope.createPlaceholder(e, data.Label, data.LabelBranding, !!data.Required ? reqSuffix : null);
+				e = scope.createPlaceholder(e, data.Label, data.LabelBranding, data.Required ? reqSuffix : null);
 			}
 
 			if(type === 'email' && topFieldKey) {
@@ -346,7 +370,7 @@ bc.FormBuilder = function(localizer) {
 		};
 
 		var createTextArea = function(data) {
-			var e = bc.util.createElement('textarea', null, data.Value);
+			var e = bc.util.createElement('textarea', {'aria-required': !!data.Required}, data.Value);
 			e.addEventListener('change', function() {
 				bc.util.toggleClass(this, 'bc-not-empty', !!this.value);
 			});
@@ -357,7 +381,7 @@ bc.FormBuilder = function(localizer) {
 			registerFormItem(e, data.Key, !!data.Required, data.Label, data.LabelBranding);
 
 			if(data.Label) {
-				e = scope.createPlaceholder(e, data.Label, data.LabelBranding, !!data.Required ? reqSuffix : null);
+				e = scope.createPlaceholder(e, data.Label, data.LabelBranding, data.Required ? reqSuffix : null);
 			}
 
 			return e;
@@ -366,6 +390,8 @@ bc.FormBuilder = function(localizer) {
 		var createSelect = function(data) {
 			var util = bc.util;
 			var selectElem = document.createElement('select');
+			var fieldContainer = selectElem;
+			selectElem.setAttribute('aria-required', !!data.Required);
 			selectElem.addEventListener('change', function(event) {
 				util.toggleClass(this, 'bc-not-empty', this.selectedIndex > 0);
 				if(data.Key === 'language' && event.target && event.target.options && typeof event.target.selectedIndex !== 'undefined') {
@@ -378,13 +404,12 @@ bc.FormBuilder = function(localizer) {
 			var selectedItem = scope.createSelectOptions(selectElem, data);
 
 			if(data.Label) {
+				fieldContainer = scope.createPlaceholder(selectElem, data.Label, data.LabelBranding, data.Required ? reqSuffix : null);
+
 				var optionLabel = util.createElement('option', {
 					disabled: true,
-					'data-l10n': data.LabelBranding
-				}, data.Label + (!!data.Required ? reqSuffix : ''));
-				if(!!data.Required) {
-					optionLabel.setAttribute('data-l10n-suffix', reqSuffix);
-				}
+					'value': ''
+				}, '');
 
 				selectElem.insertBefore(optionLabel, selectElem.firstChild);
 				if(!selectedItem) {
@@ -393,7 +418,7 @@ bc.FormBuilder = function(localizer) {
 				bc.util.toggleClass(selectElem, 'bc-not-empty', !!selectedItem);
 			}
 
-			return selectElem;
+			return fieldContainer;
 		};
 
 
@@ -408,8 +433,8 @@ bc.FormBuilder = function(localizer) {
 			util.toggleVisibility(e, !(data.ShowSelector === false));
 
 			if(data.Label) {
-				var span = util.createElement('span', {'data-l10n': data.LabelBranding}, data.Label + (!!data.Required ? reqSuffix : ''));
-				if(!!data.Required) {
+				var span = util.createElement('span', {'data-l10n': data.LabelBranding}, data.Label + (data.Required ? reqSuffix : ''));
+				if(data.Required) {
 					span.setAttribute('data-l10n-suffix', reqSuffix);
 				}
 				e.appendChild(span);
@@ -431,6 +456,7 @@ bc.FormBuilder = function(localizer) {
 		var createRating = function(data) {
 			//http://codepen.io/jamesbarnett/pen/vlpkh
 			var util = bc.util;
+			var ratingHelpId = 'bc-rating-' + getRandomId();
 
 			var starId = data.Key || Math.random().toString();
 			var starRadioName = 'bc-star-' + starId;
@@ -439,7 +465,7 @@ bc.FormBuilder = function(localizer) {
 			var starClassName = 'bc-star';
 			var starLabelClassName = 'bc-star-label';
 
-			var bcStarComponent = util.createElement('div', {class: starComponentClassName});
+			var bcStarComponent = util.createElement('div', {class: starComponentClassName, role: 'group', 'aria-labelledby': ratingHelpId});
 			var starInput = util.createElement('input', {type: 'hidden'});
 			registerFormItem(starInput, data.Key, !!data.Required, data.Label, data.LabelBranding);
 			bcStarComponent.appendChild(starInput);
@@ -458,22 +484,26 @@ bc.FormBuilder = function(localizer) {
 					type: 'radio',
 					name: starRadioName,
 					value: idx.toString(),
-					tabindex: 0
+					'aria-label': idx
 				});
 				inputRadio.addEventListener('change', function(e, params) {
 					ratingChanged(e, params, starInput.id);
 				});
 				bcStarComponent.appendChild(inputRadio);
-				bcStarComponent.appendChild(util.createElement('label', {
+
+				var inputLabel = util.createElement('label', {
 					for: id,
 					class: starClassName,
-					title: idx.toString(),
-					tabindex: 0
-				}));
+					title: idx.toString()
+				});
+				inputLabel.addEventListener('click', function(e) {
+					document.getElementById(this.getAttribute('for')).focus();
+				});
+				bcStarComponent.appendChild(inputLabel);
 			}
 
 			var finalWrap = util.createElement('div', {class: 'bc-label-and-star'});
-			finalWrap.appendChild(util.createElement('label', {class: starLabelClassName}, data.Label || starId));
+			finalWrap.appendChild(util.createElement('label', {class: starLabelClassName, id: ratingHelpId}, data.Label || starId));
 			finalWrap.appendChild(bcStarComponent);
 
 			return finalWrap;
@@ -483,9 +513,12 @@ bc.FormBuilder = function(localizer) {
 			return function() {
 				var elements = document.getElementsByClassName('bc-checked-radio');
 				for(var idx = 0; idx < elements.length; idx++) {
-					bc.util.toggleClass(elements[idx], 'bc-checked-radio', false);
+					var element = elements[idx];
+					bc.util.toggleClass(element, 'bc-checked-radio', false);
+					element.setAttribute('aria-checked', false);
 				}
 				bc.util.addClass(this, 'bc-checked-radio');
+				this.setAttribute('aria-checked', true);
 				var hdnInput = document.getElementById(hdnId);
 				if(hdnInput) {
 					hdnInput.value = this.id.substring(3);
@@ -494,6 +527,7 @@ bc.FormBuilder = function(localizer) {
 		};
 
 		var createNPS = function(data) {
+			var helpMessageId;
 			var util = bc.util;
 			var divContainer = document.createElement('div');
 			var divNPSIntContainer = util.createElement('div', {class: 'bc-nps-interface'});
@@ -501,13 +535,18 @@ bc.FormBuilder = function(localizer) {
 			var divNPSRadiosContainer = util.createElement('div', {class: 'bc-nps-radios'});
 			var hdnInput = util.createElement('input', {type: 'hidden', name: 'bc-record-survey-nps'});
 			registerFormItem(hdnInput, data.Key, !!data.Required, data.Label, data.LabelBranding);
+			
 
 			if(data.Label) {
+				helpMessageId = 'bc-help-' + getRandomId();
+				divNPSRadiosContainer.setAttribute('role', 'group');
+				divNPSRadiosContainer.setAttribute('aria-labelledby', helpMessageId);
 				var divHelp = util.createElement('div', {
-					class: 'bc-help-message',
+					'id': helpMessageId,
+					'class': 'bc-help-message',
 					'data-l10n': data.LabelBranding
-				}, data.Label + (!!data.Required ? reqSuffix : ''));
-				if(!!data.Required) {
+				}, data.Label + (data.Required ? reqSuffix : ''));
+				if(data.Required) {
 					divHelp.setAttribute('data-l10n-suffix', reqSuffix);
 				}
 				divContainer.appendChild(divHelp);
@@ -523,10 +562,14 @@ bc.FormBuilder = function(localizer) {
 						divNPSHeader.appendChild(util.createElement('div', {class: 'bc-nps-message-right'}, option.Name.replace('10 - ', '')));
 					}
 
-					var r = util.createElement('div', {
+					var r = util.createElement('button', {
+						'aria-label': counter,
+						type: 'button',
+						role: 'switch',
 						class: 'bc-radio-container bc-unchecked-radio',
 						id: 'rad' + counter
 					}, counter.toString());
+
 					r.addEventListener('click', radioClicked(r, hdnInput.id));
 					divNPSRadiosContainer.appendChild(r);
 				}
@@ -605,11 +648,14 @@ bc.FormBuilder = function(localizer) {
 
 		if(introKey) {
 			var bcFormIntro = createContainer('bc-form-intro');
+			var bcFormIntroId = 'bc-form-' + getRandomId();
 			var textDiv = createText(introKey);
 			var textContent = localizer.getLocalizedValue(introKey);
 			if(!textContent && textContent.length === 0) {
 				textDiv.textContent = introKey;	//no localization value for key. This could be due to the localization information not yet being loaded or an error occurred before the chat was created
 			}
+			bcFormIntro.setAttribute('id', bcFormIntroId);
+			form.setAttribute('aria-labelledby', bcFormIntroId);
 			bcFormIntro.appendChild(textDiv);
 			form.appendChild(bcFormIntro);
 		}
