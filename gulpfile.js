@@ -52,7 +52,6 @@ function getIndexBodyContent(templatePath) {
 	log('Getting index file: ' + indexFileName);
 	var indexContent = fs.readFileSync(indexFileName, 'utf8');
 	var bodyContent = indexContent.substr(indexContent.indexOf('<div id="bc-chat">'));
-	// console.log('bodyContent', bodyContent);
 
 	return {bodyContent: bodyContent};
 }
@@ -121,7 +120,6 @@ function injectFiles(fileType, addRootSlash, relative, themeSpecificRelative, pr
 	var startOptions = getInjectStartOptions(addRootSlash, relative);
 	var boldchatOptions = getInjectBoldChatOptions(addRootSlash, relative);
 	var themeOptions = getInjectThemeOptions(addRootSlash, typeof themeSpecificRelative === 'undefined' ? relative : themeSpecificRelative, prefix);
-	console.log('themeOptions', themeOptions);
 
 	var localProd = argv.prod;
 	var localMin = argv.min;
@@ -217,8 +215,8 @@ gulp.task('nightwatch:chrome', function() {
 	stream.pipe(req.exit());
 });
 
-gulp.task('webserver', ['create-final-build'], function() {
-	gulp.src('out')
+gulp.task('webserver', function() {
+	gulp.src(config.dest_src)
 		.pipe(req.webserver({port: 8888}));
 });
 
