@@ -52,6 +52,10 @@
         @include bc-transition(0.2s ease-in-out);
     }
 
+    select + label {
+        position: static;
+    }
+
     textarea + label {
         top: 15px;
     }

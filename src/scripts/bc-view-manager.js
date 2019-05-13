@@ -200,6 +200,59 @@ bc.ViewManager = function(formBuilder) {
 		}
 	};
 
+	/**
+	 * Shows confirmation dialog UI to confirm visitor intent
+	 * @param {Object} dialogParams - Plain object with "prompt", "confirm" and "cancel" strings
+	 * @param {Function} callback   - Callback function which should be invoked with user choice as the first argument
+	 */
+	this.showConfirmationDialog = function(dialogParams, callback) {
+		var confirmationDialog = bc.util.createElement('div', { class: 'bc-confirm-dialog' });
+		var confirmationMessage = bc.util.createElement('strong', { class: 'bc-confirm-message' }, dialogParams.prompt);
+		var buttonConfirm = bc.util.createElement('button', { class: 'bc-confirm-button' }, dialogParams.confirm);
+		var buttonDecline = bc.util.createElement('button', { class: 'bc-confirm-button', type: 'button' }, dialogParams.cancel);
+
+		buttonConfirm.onclick = buttonDecline.onclick = function() {
+			var confirmed = (this === buttonConfirm);
+			confirmationDialog.parentNode.removeChild(confirmationDialog);
+			callback(confirmed);
+		};
+
+		confirmationDialog.appendChild(confirmationMessage);
+		confirmationDialog.appendChild(buttonConfirm);
+		confirmationDialog.appendChild(buttonDecline);
+		chatHistory.parentNode.appendChild(confirmationDialog);
+	};
+
+	/**
+	 * Shows status message along with "Cancel" button
+	 * @param {String} messageText      - Message text
+	 * @param {String} cancelText       - Cancel button text
+	 * @param {Function} cancelCallback - Callback function which should be invoked if user will press the cancel button
+	 */
+	this.showCancellableMessage = function(messageText, cancelText, cancelCallback) {
+		var messageBar = bc.util.createElement('div', { class: 'bc-message-bar' });
+		var messageBarText = bc.util.createElement('strong', { class: 'bc-message-bar-text' }, messageText);
+		var buttonCancel = bc.util.createElement('button', { class: 'bc-message-bar-cancel', type: 'button' }, cancelText);
+
+		this.hideCancellableMessage();
+		buttonCancel.onclick = cancelCallback;
+
+		messageBar.appendChild(messageBarText);
+		messageBar.appendChild(buttonCancel);
+		chatHistory.parentNode.appendChild(messageBar);
+		this.messageBar = messageBar;
+	};
+
+	/**
+	 * Hides active status message (if any)
+	 */
+	this.hideCancellableMessage = function() {
+		if (this.messageBar) {
+			this.messageBar.parentNode.removeChild(this.messageBar);
+			this.messageBar = null;
+		}
+	};
+
 	//noinspection Eslint
 	/**
 	 * Show an indiator notifying the visitor they are waiting in a queue.  If there is already a queue message showing it should
@@ -607,6 +660,31 @@ bc.ViewManager = function(formBuilder) {
 			});
 		}
 
+		var fileButton = document.getElementById('bc-send-file-btn');
+		if(fileButton) {
+			fileButton.addEventListener('click', function() {
+				var input = document.getElementById('bc-file-upload-input');
+				if(!input) {
+					return;
+				}
+
+				input.click();
+			});
+		}
+
+		var fileInput = document.getElementById('bc-file-upload-input');
+		if(fileInput) {
+			fileInput.addEventListener('change', function(event) {
+				var input = event.target;
+				var file = input.files[0];
+				if(!file) {
+					return;
+				}
+
+				scope.session.client.sendFile(file);
+			});
+		}
+
 		var emailElement = document.getElementById('bc-email');
 		if(emailElement) {
 			emailElement.addEventListener('click', function() {
@@ -698,6 +776,8 @@ bc.ViewManager = function(formBuilder) {
 				scope.session.changeMinimizedStatus(false);
 			});
 		}
+
+		bc.util.setAttribute(layeredChatElem, 'ignore', 'true');
 
 		window.addEventListener('resize', function() {
 			scope.scrollToBottom();

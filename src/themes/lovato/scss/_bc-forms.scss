@@ -26,14 +26,12 @@
     margin-bottom: 7px;
 }
 
-div.bc-input-container-select > select {
-    top: 0;
-    right: 0;
-    bottom: 0;
+.bc-input-container select {
     line-height: 30px;
     padding: 0 7px;
     @include bc-border-radius(0 6px 6px 0);
     border: 1px solid $bc-color-theme-four;
+    width: 100%;
     height: 30px;
     background: none;
     background-color: $bravo;

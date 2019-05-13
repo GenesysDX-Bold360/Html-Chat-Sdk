@@ -3,7 +3,7 @@ bc.bcMapLog = function(message, obj) {
 	"use strict";
 
 	if (bc.util) {
-		bc.util.log('sodiv: ' + message, false, obj)
+		bc.util.log('sodiv: ' + message, false, obj);
 	} else {
 		console.log('sodiv: ' + message, obj);
 	}
@@ -97,7 +97,7 @@ bc.slideOutDiv.prototype = function() {
 		showElement: showElement,
 		hideElement: hideElement,
 		addElementsToHide: addElementsToHide
-	}
+	};
 }();
 
 bc.iframe = function(container) {
