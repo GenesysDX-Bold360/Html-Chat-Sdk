@@ -441,7 +441,7 @@ bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
 	 */
 	this._showCoBrowsePrompt = function() {
 		var dialogParams = {
-			prompt: 'Would you like to allow the operator to start a cobrowse session with your computer?',
+			prompt: scope.viewManager.getLocalizedValue('custom#common#active_assist#active_assist_cobrowse_prompt'),
 			confirm: scope.viewManager.getLocalizedValue('api#generic#yes'),
 			cancel: scope.viewManager.getLocalizedValue('api#generic#no')
 		};

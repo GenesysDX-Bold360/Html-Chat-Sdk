@@ -471,7 +471,7 @@ bc.VisitorClient = function(auth) {
       VisitorID: visitorID,
       Language: language,
       IncludeBrandingValues: true,
-      IncludeLayeredBrandingValues: false,
+      IncludeLayeredBrandingValues: true,
       SkipPreChat: skipPreChat,
       Data: JSON.stringify(data),
       Secured: secureParam,
