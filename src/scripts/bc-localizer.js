@@ -11,116 +11,146 @@ var bc = window.bc = (window.bc || {});
  * @constructor
  */
 bc.Localizer = function(localizationValues) {
-	var scope = this;
-	var locValues = localizationValues || {};
-	var hasValues = false;
+  var scope = this;
+  var currentLanguage = null;
+  var locValues = localizationValues || {};
+  var hasValues = false;
 
-	this.hasLocalizedValues = function() {
-		return hasValues;
-	};
+  this.hasLocalizedValues = function() {
+    return hasValues;
+  };
 
-	/**
-	 * Sets the current set of localiaztion values.
-	 * @param {object} values - The key-value pairs of localization items.
-	 */
-	this.setLocalizationValues = function(values) {
-		hasValues = values ? true : false;
-		locValues = values;
-		scope.updateLocalizedValues();
-	};
+  /**
+   * Returns true if specified language code is RTL
+   * @return {Boolean} - Language code
+   */
+  this.isLanguageRTL = function(languageCode) {
+    switch(languageCode) {
+      case 'he-IL':
+      case 'ar-EG':
+        return true;
+      default:
+        return false;
+    }
+  };
 
-	/**
-	 * Gets the localization value for a given key
-	 * @param {string} key - The key of the value to fetch.
-	 * @return {string} - The value of the key, or an empty string.
-	 */
-	this.getLocalizedValue = function(key) {
-		return locValues[key] || '';
-	};
+  /**
+   * Sets the current set of localization values.
+   * @param {object} values - The key-value pairs of localization items.
+   * @param {string} languageCode - Language code
+   */
+  this.setLocalizationValues = function(values, languageCode) {
+    currentLanguage = languageCode || currentLanguage;
+    hasValues = values ? true : false;
+    locValues = values;
+    scope.updateLocalizedValues();
+  };
 
-	/**
-	 * Localizes all elements which has data-l10n attributes set.
-	 * @param rootElement - Root element. If not set then the whole body will be updated.
-	 */
-	this.updateLocalizedValues = function(rootElement) {
-		var elements = rootElement ? rootElement.querySelectorAll('*[data-l10n]') : document.querySelectorAll('*[data-l10n]');
-		for(var i = 0; i < elements.length; i++) {
-			var e = elements[i];
-			var key = e.getAttribute('data-l10n');
+  /**
+   * Returns current localizer language
+   * @return {string} - Language code
+   */
+  this.getLanguage = function() {
+    return currentLanguage;
+  };
 
-			if(key) {
-				var text = scope.getLocalizedValue(key);
-				if(text) {
-					var suffix = e.getAttribute('data-l10n-suffix');
-					if(suffix) {
-						text += suffix;
-					}
+  /**
+   * Gets the localization value for a given key
+   * @param {string} key - The key of the value to fetch.
+   * @return {string} - The value of the key, or an empty string.
+   */
+  this.getLocalizedValue = function(key) {
+    return locValues[key] || '';
+  };
 
-					switch(e.nodeName) {
-						case 'LABEL':
-							var requiredIndicator = e.querySelector('.bc-required-indicator');
-							if(!e.children.length) {
-								e.innerHTML = text;
-							}
-							else if(requiredIndicator && e.children.length === 1) {
-								e.innerHTML = text;
-								e.appendChild(requiredIndicator);
-							}
-							else {
-								bc.util.log('Not implemented', true);
-							}
-							break;
+  /**
+   * Localizes all elements which has data-l10n attributes set.
+   * @param rootElement - Root element. If not set then the whole body will be updated.
+   */
+  this.updateLocalizedValues = function(rootElement) {
+    updateNodes(rootElement);
+    updatePlaceholders(rootElement);
+  };
 
-						case 'OPTGROUP':
-							e.setAttribute('label', text);
-							break;
+  function updateNodes(rootElement) {
+    var elements = rootElement ? rootElement.querySelectorAll('*[data-l10n]') : document.querySelectorAll('*[data-l10n]');
+    for(var i = 0; i < elements.length; i++) {
+      var e = elements[i];
+      var key = e.getAttribute('data-l10n');
 
-						case 'INPUT':
-							e.value = text;
-							break;
+      if(key) {
+        var text = scope.getLocalizedValue(key);
+        if(text) {
+          var suffix = e.getAttribute('data-l10n-suffix');
+          if(suffix) {
+            text += suffix;
+          }
 
-						case 'TEXTAREA':
-							var placeholder = e.getAttribute('data-l10n-placeholder');
-							if(placeholder) {
-								if(placeholder !== 'useText') {
-									text = scope.getLocalizedValue(placeholder);
-								}
-								e.placeholder = text;
-							} else {
-								e.innerHTML = text;
-							}
-							break;
+          switch(e.nodeName) {
+            case 'LABEL':
+              var requiredIndicator = e.querySelector('.bc-required-indicator');
+              if(!e.children.length) {
+                e.innerHTML = text;
+              } else if(requiredIndicator && e.children.length === 1) {
+                e.innerHTML = text;
+                e.appendChild(requiredIndicator);
+              } else {
+                bc.util.log('Not implemented', true);
+              }
+              break;
 
-						default:
-							e.innerHTML = text;
-							break;
-					}
-				} else {
-					bc.util.log('No localized text found for ' + key, null);
-				}
+            case 'OPTGROUP':
+              e.setAttribute('label', text);
+              break;
 
-				var prefixKey = e.getAttribute('data-l10n-prefix');
-				if(prefixKey) {
-					var prefixValue = scope.getLocalizedValue(prefixKey);
-					if (prefixValue && prefixValue.length > 0) {
-						prefixValue += ' ';
-					}
-					e.innerHTML = prefixValue + e.innerHTML;
-				}
-			}
-		}
+            case 'INPUT':
+              e.value = text;
+              break;
 
-		var elements = rootElement ? rootElement.querySelectorAll('input[data-l10n-placeholder]') : document.querySelectorAll('input[data-l10n-placeholder]');
-		for(var i = 0; i < elements.length; i++) {
-			var e = elements[i];
-			var key = e.getAttribute('data-l10n-placeholder');
+            case 'TEXTAREA':
+              var placeholder = e.getAttribute('data-l10n-placeholder');
+              if(placeholder) {
+                if(placeholder !== 'useText') {
+                  text = scope.getLocalizedValue(placeholder);
+                }
+                e.placeholder = text;
+              } else {
+                e.innerHTML = text;
+              }
+              break;
 
-			if(key) {
-				var text = scope.getLocalizedValue(key);
-				if(text) {
-					e.placeholder = text;
-				}
-			}
-		}
-	};
+            default:
+              e.innerHTML = text;
+              break;
+          }
+        } else {
+          bc.util.log('No localized text found for ' + key, null);
+        }
+
+        var prefixKey = e.getAttribute('data-l10n-prefix');
+        if(prefixKey) {
+          var prefixValue = scope.getLocalizedValue(prefixKey);
+          if(prefixValue && prefixValue.length > 0) {
+            prefixValue += ' ';
+          }
+          e.innerHTML = prefixValue + e.innerHTML;
+        }
+      }
+    }
+  }
+
+  function updatePlaceholders(rootElement) {
+    var elements = rootElement ? rootElement.querySelectorAll('input[data-l10n-placeholder]') : document.querySelectorAll('input[data-l10n-placeholder]');
+    for(var i = 0; i < elements.length; i++) {
+      var e = elements[i];
+      var key = e.getAttribute('data-l10n-placeholder');
+
+      if(key) {
+        var text = scope.getLocalizedValue(key);
+        if(text) {
+          e.placeholder = text;
+        }
+      }
+    }
+  }
 };

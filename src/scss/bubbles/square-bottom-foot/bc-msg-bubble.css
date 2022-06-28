@@ -1,0 +1,134 @@
+.bc-msg {
+  padding: 0;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  margin-left: 0;
+  margin-right: 0;
+  position: relative;
+  background-color: transparent;
+}
+
+.bc-msg-bubble {
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  z-index: 0;
+  border-bottom: 1px solid #DDDDDD;
+  margin-left: 50px;
+}
+
+.bc-msg-op img {
+  max-width: 100%;
+  height: auto;
+}
+
+.bc-msg-bubble-triangle {
+  height: 0;
+  width: 0;
+  border-top: 13px solid transparent;
+  border-right: 13px solid #FFF;
+}
+
+.bc-msg-bubble-vis {
+  left: auto;
+  right: 0;
+  margin-left: 0;
+  margin-right: 50px;
+}
+
+.bc-msg-bubble-vis .bc-msg-bubble-triangle {
+  border-top: 13px solid transparent;
+  border-right: none;
+  border-left: 13px solid #4cb7ef;
+}
+
+.bc-msg-txt-vis {
+  color: #fff;
+}
+
+.bc-msg-wrap-op, .bc-msg-wrap-sys, .bc-msg-wrap-vis {
+  background-color: #FFF;
+  padding: 15px;
+  font-size: 15px;
+  border-bottom: 1px solid #DDDDDD;
+  margin-left: 63px;
+}
+
+.bc-msg-wrap-vis {
+  background-color: #4cb7ef;
+  margin-left: 0;
+  margin-right: 63px;
+}
+
+.bc-msg-time {
+  float: none;
+  color: rgba(0, 0, 0, 0.3);
+  font-size: 12px;
+  padding-top: 10px;
+}
+
+.bc-msg-time-vis {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.bc-msg-avatar-halo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  border: 2px solid #aaa;
+  border-radius: 50%;
+  padding: 3px;
+  background-color: transparent;
+}
+
+.bc-msg-avatar {
+  min-width: 40px;
+  min-height: 40px;
+  max-width: 40px;
+  max-height: 40px;
+  border-radius: 50%;
+  margin: 0;
+  -webkit-background-size: 40px 40px;
+  background-size: 40px 40px;
+  background-repeat: no-repeat;
+}
+
+.bc-msg-avatar-op {
+  background-image: url("../../images/operator.png");
+}
+
+.bc-msg-avatar-sys {
+  background-image: url("../../images/operator.png");
+}
+
+.bc-msg-avatar-vis {
+  background-image: url("../../images/visitor.png");
+}
+
+.bc-msg-avatar-status {
+  background-image: url("../../images/operator.png");
+}
+
+.bc-msg-vis .bc-msg-avatar-halo {
+  left: auto;
+  right: 0;
+  border-color: #4cb7ef;
+}
+
+.bc-translation-toggle {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  display: block;
+  font-size: 0.8em;
+  color: #999999;
+  cursor: pointer;
+}
+
+#microsoft_translate {
+  height: auto !important;
+}
+
+#microsoft_translate img {
+  -webkit-box-sizing: initial;
+  box-sizing: initial;
+}

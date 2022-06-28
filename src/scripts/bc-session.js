@@ -27,665 +27,854 @@ var bc = window.bc = (window.bc || {});
  * @param {string} visitorInfo.[phone] - Optional parameter
  * @param {string} visitorInfo.[email] - Optional parameter
  * @param {ViewManager} [viewManager] - The object that will receive method calls to update the chat window UI.  If this is null or undefined then a new instance of bc.ViewManager will be used.
+ * @param {boolean} enforceCreateChat - Enforce creating a new chat
  * @constructor
  */
-bc.Session = function(apiKey, chatParams, visitorInfo, viewManager) {
-	var scope = this;
-	var queuePosition = 0;
-	var answerTimeout = null;
-	var minimizeTimeout = null;
-	var canAddMinimizeClass = false;
-	var seenLastMessageId = 0;
+bc.Session = function (apiKey, chatParams, visitorInfo, viewManager, enforceCreateChat) {
+  var scope = this;
+  var queuePosition = 0;
+  var answerTimeout = null;
+  var minimizeTimeout = null;
+  var canAddMinimizeClass = false;
+  var seenLastMessageId = 0;
+  var waitForHeartbeat = 15000;
 
-	this.viewManager = viewManager;
-	this.client = new bc.VisitorClient(apiKey);
-	this.chatParams = chatParams || {};
-	this.visitorInfo = visitorInfo || {};
+  this.viewManager = viewManager;
+  this.client = new bc.VisitorClient(apiKey);
+  this.chatParams = chatParams || {};
+  this.visitorInfo = visitorInfo || {};
+  this.lastSuccesfullInteraction = null;
+  this.heartbeatTimeout = null;
+  this.connectionState = 'connecting';
+  this.videoSessionStatus = null;
 
-	var failure = function(msg) {
-		scope.viewManager.hideBusy();
-		scope.viewManager.showError(msg);
-	};
+  var videoSessionStatusEnum = {
+    Uninitialized: -1,
+    NoActiveSession: 0,
+    InitiatedByVisitor: 1,
+    InitiatedByOperator: 2,
+    AcceptedByOperator: 3,
+    AcceptedByVisitor: 4,
+    DeclinedByOperator: 5,
+    DeclinedByVisitor: 6,
+    EndedByOperator: 7,
+    EndedByVisitor: 8,
+    EndedByServer: 9
+  };
+
+  var failure = function (msg) {
+    scope.viewManager.hideBusy();
+    scope.viewManager.showError(msg);
+  };
 
 
-	/**
-	 * Returns the api key that the Session was instantiated with.
-	 * @returns {string} - The Api key
-	 */
-	this.getApiKey = function() {
-		return apiKey;
-	};
+  /**
+   * Returns the api key that the Session was instantiated with.
+   * @returns {string} - The Api key
+   */
+  this.getApiKey = function () {
+    return apiKey;
+  };
 
-	/**
-	 * Gets the visitor id for making api calls.
-	 * @returns {string} - The visitor Id
-	 */
-	this.getVisitorId = function() {
-		var loc = document.location.href;
-		var visitorId = this.visitorInfo.visitorId;
-		if(!visitorId) {
-			var vrIndex = loc.indexOf('_bcvm_vrid_');
-			if(vrIndex !== -1) {
-				var vrEq = loc.indexOf('=', vrIndex);
-				var vrEnd = loc.indexOf('&', vrIndex);
-				if(vrEq !== -1) {
-					visitorId = loc.substring(vrEq + 1, vrEnd === -1 ? loc.length : vrEnd);
-				}
-			}
-		}
-		return visitorId;
-	};
+  /**
+   * Initializes session asynchronously
+   * @param {bc.AsyncValue} - Resolved when the initialization is done
+   */
+  this.initializeAsync = function () {
+    return this.client.initializeAsync();
+  };
 
-	//noinspection Eslint
-	/**
-	 * Gets the availability for chat.
-	 * @param {function} onChatAvailability - The callback with the availability status, 2 values will be passed, a boolean indicating availability, and if the boolean is false a string will be return with unavailable reason.
-	 * @param {function} onChatAvailabilityFailed - The callback if the availability check fails.
-	 */
-	this.getChatAvailability = function(onChatAvailability, onChatAvailabilityFailed) {
-		this.client.getChatAvailability(scope.getVisitorId())
-			.success(function(data) {
-				onChatAvailability(data.Available, data.UnavailableReason);
-			})
-			.failure(onChatAvailabilityFailed);
-	};
+  /**
+   * Gets the visitor id for making api calls.
+   * @returns {string} - The visitor Id
+   */
+  this.getVisitorId = function () {
+    var loc = document.location.href;
+    var visitorId = this.visitorInfo.visitorId;
+    if (!visitorId) {
+      var vrIndex = loc.indexOf('_bcvm_vrid_');
+      if (vrIndex !== -1) {
+        var vrEq = loc.indexOf('=', vrIndex);
+        var vrEnd = loc.indexOf('&', vrIndex);
+        if (vrEq !== -1) {
+          visitorId = loc.substring(vrEq + 1, vrEnd === -1 ? loc.length : vrEnd);
+        }
+      }
+    }
+    return visitorId;
+  };
 
-	var displayUnavailableForm = function(response) {
-		var introKey = 'api#unavailable#no_operators';
-		var submitKey = 'api#chat#close';
-		if(response.UnavailableForm) {
-			if(response.UnavailableForm.Fields) {
-				introKey = 'api#unavailable#intro';
-				submitKey = 'api#chat#send';
-			} else if(response.UnavailableReason === 'unsecure') {
-				introKey = 'api#unsecure#message';
-			}
-		}
-		scope.viewManager.showForm(introKey, response.UnavailableForm, null, submitKey, scope._unavailableFormSubmitted);
-	};
+  //noinspection Eslint
+  /**
+   * Gets the availability for chat.
+   * @param {function} onChatAvailability - The callback with the availability status, 2 values will be passed, a boolean indicating availability, and if the boolean is false a string will be return with unavailable reason.
+   * @param {function} onChatAvailabilityFailed - The callback if the availability check fails.
+   */
+  this.getChatAvailability = function (onChatAvailability, onChatAvailabilityFailed) {
+    this.client.getChatAvailability(scope.getVisitorId())
+      .success(function (data) {
+        onChatAvailability(data.Available, data.UnavailableReason);
+      })
+      .failure(onChatAvailabilityFailed);
+  };
 
-	var addObjectValues = function(source, destination) {
-		for(var prop in source) {
-			if(source.hasOwnProperty(prop)) {
-				destination[prop] = source[prop];
-			}
-		}
-	};
+  var displayUnavailableForm = function (response) {
+    var introKey = 'api#unavailable#no_operators';
+    var submitKey = 'api#chat#close';
+    if (response.UnavailableReason === 'outside_hours') {
+      introKey = 'api#unavailable#unavailable_hours_operators';
+    }
+    if (response.UnavailableForm) {
+      if (response.UnavailableForm.Fields) {
+        introKey = 'api#unavailable#intro';
+        submitKey = 'api#chat#send';
+      } else if (response.UnavailableReason === 'unsecure') {
+        introKey = 'api#unsecure#message';
+      }
+    }
+    scope.viewManager.showForm(introKey, response.UnavailableForm, null, submitKey, scope._unavailableFormSubmitted);
+  };
 
-	var displayWaitForOperatorMessage = function() {
-		if(!scope.client.chatContainsStatusMessage) {
-			var waitForOpMsg = null;
-			if(queuePosition !== 0) {
-				waitForOpMsg = scope.viewManager.getLocalizedValue('api#chat#operators_busy');
-			} else {
-				waitForOpMsg = scope.viewManager.getLocalizedValue('api#chat#waiting_for_operator');
-			}
-			if(waitForOpMsg) {
-				scope.viewManager.showStatusMessage(waitForOpMsg);
-			}
-		}
-	};
+  var addObjectValues = function (source, destination) {
+    for (var prop in source) {
+      if (Object.prototype.hasOwnProperty.call(source, prop)) {
+        destination[prop] = source[prop];
+      }
+    }
+  };
 
-	var isChatQueued = function() {
-		if(scope.client.isStarted()) {
-			var chat = scope.client.getChat();
-			// Chat will be null until it receives the first call to updateChat, so rely on the isStarted() value only
-			// until it gets an update
-			return chat === null || (!chat.Answered && !chat.Ended && !chat.Closed);
-		}
-	};
+  var displayWaitForOperatorMessage = function () {
+    if (!scope.client.chatContainsStatusMessage) {
+      var waitForOpMsg = null;
+      if (queuePosition !== 0) {
+        waitForOpMsg = scope.viewManager.getLocalizedValue('api#chat#operators_busy');
+      } else {
+        waitForOpMsg = scope.viewManager.getLocalizedValue('api#chat#waiting_for_operator');
+      }
+      if (waitForOpMsg) {
+        scope.viewManager.showStatusMessage(waitForOpMsg, 'message-type-waiting-for-op');
+      }
+    }
+  };
 
-	var startAnswerTimeout = function(secondsToTimeout) {
-		if(secondsToTimeout) {
-			bc.util.log("Starting answer timeout for " + secondsToTimeout + " seconds");
-			if(answerTimeout) {
-				clearTimeout(answerTimeout);
-				answerTimeout = null;
-			}
-			if(isChatQueued()) {
-				answerTimeout = setTimeout(function() {
-					bc.util.log("Answer timed out");
-					if(isChatQueued()) {
-						scope.cancelQueueWait();
-					}
-					answerTimeout = null;
-				}, secondsToTimeout * 1000);
-			}
-		}
-	};
+  var isChatQueued = function () {
+    if (scope.client.isStarted()) {
+      var chat = scope.client.getChat();
+      // Chat will be null until it receives the first call to updateChat, so rely on the isStarted() value only
+      // until it gets an update
+      return chat === null || (!chat.Answered && !chat.Ended && !chat.Closed);
+    }
+  };
 
-	/**
-	 * Initiates the start of a new session.
-	 * @param {boolean} [skipPreChat] - Optional parameter to skip the pre-chat form for the chat session if it is enabled in the configuration.
-	 * @param {string} [language] - Optional parameter to set the initial language of the chat window. For the default window language do not pass the parameter, or pass null.
-	 * @param {object} [data] - The data parameter allows you to pre-set certain values of the chat that will be available to the operator.  For a full list of data keys consult the api documentation.
-	 */
-	this.startChat = function(skipPreChat, language, data) {
-		if(!this.viewManager) {
-			this.viewManager = new bc.ViewManager();
-		}
+  var startAnswerTimeout = function (secondsToTimeout) {
+    if (secondsToTimeout) {
+      bc.util.log("Starting answer timeout for " + secondsToTimeout + " seconds");
+      if (answerTimeout) {
+        clearTimeout(answerTimeout);
+        answerTimeout = null;
+      }
+      if (isChatQueued()) {
+        answerTimeout = setTimeout(function () {
+          bc.util.log("Answer timed out");
+          if (isChatQueued()) {
+            scope.cancelQueueWait();
+          }
+          answerTimeout = null;
+        }, secondsToTimeout * 1000);
+      }
+    }
+  };
 
-		this.viewManager.initialize(this);
-		scope.viewManager.showBusy();
-		if(this.client.hasChatKey()) {
-			this.client.startChat()
-				.success(function(startData) {
-					scope.chatWindowSettings = scope.client.getChatWindowSettings();
-					scope.viewManager.showChatForm();
-					scope.viewManager.hideBusy();
-					scope.chatParams = scope.client.getChatParams();
-					scope.visitorInfo = scope.client.getVisitInfo();
+  /**
+   * Initiates the start of a new session.
+   * @param {boolean} [skipPreChat] - Optional parameter to skip the pre-chat form for the chat session if it is enabled in the configuration.
+   * @param {string} [language] - Optional parameter to set the initial language of the chat window. For the default window language do not pass the parameter, or pass null.
+   * @param {object} [data] - The data parameter allows you to pre-set certain values of the chat that will be available to the operator.  For a full list of data keys consult the api documentation.
+   */
+  this.startChat = function (skipPreChat, language, data) {
+    var result = new bc.AsyncValue();
+    scope._clearHeartBeatTimeout();
+    if (!scope.viewManager) {
+      scope.viewManager = new bc.ViewManager();
+    }
 
-					if(startData.Brandings || scope.client.getBrandings()) {
-						scope.viewManager.setLocalizationValues(startData.Brandings || scope.client.getBrandings());
-					}
-					displayWaitForOperatorMessage();
-				})
-				.failure(function(error) {
-					bc.util.log('Failed to resume previous chat session: ' + error, true);
-					scope.viewManager.closeChat();
-				});
-		} else {
-			var confirmIframeLoaded = setTimeout(function() {
-				scope.client.setState('error');
-				scope.viewManager.hideBusy();
-				scope.viewManager.showError('Error creating chat, please try again.');	//localization would not yet have been loaded
-			}, 15000);
+    scope.viewManager.initialize(scope);
+    scope.viewManager.showBusy();
 
-			var chatDataParams = {};
-			addObjectValues(visitorInfo, chatDataParams);
-			addObjectValues(data, chatDataParams);
-			chatDataParams.language = chatDataParams.language || scope.chatParams.language;
+    this.client.canStartChat()
+      .failure(function () {
+        result.reject();
+      })
+      .success(function (canStartChat) {
+        if (enforceCreateChat) {
+          scope.client.setState('create');
+        }
 
-			this.client.createChat(scope.chatParams.visitor || scope.getVisitorId(), language || scope.chatParams.language, skipPreChat, chatDataParams, scope.chatParams.secure, scope.chatParams.button, scope.chatParams.url, scope.chatParams.customUrl)
-				.success(function(chatData) {
-					clearTimeout(confirmIframeLoaded);
-					scope.viewManager.setLocalizationValues(chatData.Brandings);
-					if(scope.chatParams) {
-						scope.client.addChatParams(scope.chatParams);
-					}
-					if(scope.visitorInfo) {
-						scope.client.addVisitInfo(scope.visitorInfo);
-					}
+        if (canStartChat && !enforceCreateChat) {
+          scope.client.startChat()
+            .success(function (startData) {
+              scope.chatWindowSettings = scope.client.getChatWindowSettings();
+              scope.viewManager.showChatForm();
+              scope.viewManager.hideBusy();
+              scope.chatParams = scope.client.getChatParams();
+              scope.visitorInfo = scope.client.getVisitInfo();
+              scope.lastSuccesfullInteraction = new Date();
 
-					// set default chat window settings
-					scope.client.setChatWindowSettings(chatData.ChatWindowSettings);
-					scope.chatWindowSettings = scope.client.getChatWindowSettings();
+              if (startData.Brandings || scope.client.getBrandings()) {
+                scope.viewManager.setLocalizationValues(startData.Brandings || scope.client.getBrandings(), scope.client.getLanguage());
+              }
+              displayWaitForOperatorMessage();
+              result.resolve();
+            })
+            .failure(function (error) {
+              bc.util.log('Failed to resume previous chat session: ' + error, true);
+              scope.viewManager.closeChat();
+              result.reject();
+            });
+        } else {
+          var confirmIframeLoaded = setTimeout(function () {
+            scope.client.setState('error');
+            scope.viewManager.hideBusy();
+            scope.viewManager.showError('Error creating chat, please try again.');	//localization would not yet have been loaded
+          }, 15000);
 
-					scope.viewManager.hideBusy();
-					if(chatData.PreChat) {
-						scope.viewManager.showForm('api#prechat#intro', chatData.PreChat, null, 'api#prechat#start', scope._preChatFormSubmitted);
-					} else if(chatData.UnavailableForm) {
-						displayUnavailableForm(chatData);
-					} else {
-						startAnswerTimeout(chatData.AnswerTimeout);
-						scope.viewManager.showChatForm();
-						displayWaitForOperatorMessage();
-					}
-				})
-				.failure(function(msg) {
-						clearTimeout(confirmIframeLoaded);
-						failure(msg);
-					}
-				);
-		}
-	};
+          var chatDataParams = {};
+          addObjectValues(visitorInfo, chatDataParams);
+          addObjectValues(data, chatDataParams);
+          chatDataParams.language = chatDataParams.language || scope.chatParams.language;
 
-	/**
-	 * Changes the language of the chat window to another language retrieving the language values from the BoldChat server.
-	 * @param {string} language - The new language to use.
-	 */
-	this.setLanguage = function(language) {
-		scope.viewManager.showBusy();
-		this.client.changeLanguage(language)
-			.success(function(data) {
-				scope.viewManager.hideBusy();
-				if(data.Brandings) {
-					scope.viewManager.setLocalizationValues(data.Brandings);
-				}
-				if(data.Departments) {
-					scope.viewManager.changeDepartments(data.Departments);
-				}
-			})
-			.failure(failure);
-	};
+          scope.client.createChat(scope.chatParams.visitor || scope.getVisitorId(), language || scope.chatParams.language, skipPreChat, chatDataParams, scope.chatParams.secure, scope.chatParams.button, scope.chatParams.url, scope.chatParams.customUrl)
+            .success(function (chatData) {
+              clearTimeout(confirmIframeLoaded);
+              scope.lastSuccesfullInteraction = new Date();
+              scope.viewManager.setLocalizationValues(chatData.Brandings, chatData.Language);
+              if (scope.chatParams) {
+                scope.client.addChatParams(scope.chatParams);
+              }
+              if (scope.visitorInfo) {
+                scope.client.addVisitInfo(scope.visitorInfo);
+              }
 
-	/**
-	 * Notify the server that the visitor is currently typing a message.
-	 * @param {boolean} isTyping - true if the visitor is currently typeing, false if they are not.
-	 */
-	this.setVisitorTyping = function(isTyping) {
-		this.client.visitorTyping(isTyping);
-	};
+              // set default chat window settings
+              scope.client.setChatWindowSettings(chatData.ChatWindowSettings);
+              scope.chatWindowSettings = scope.client.getChatWindowSettings();
 
-	/**
-	 * Send the visitor message to the BoldChat system.
-	 * @param {string} message - The visitor message text
-	 * @return {number} - Returns the message id assigned to this message. This should be used to reference the message later.
-	 */
-	this.addVisitorMessage = function(message) {
-		var id = bc.util.getId();
-		this.client.sendMessage(scope.getVisitorName(), message, id);
-		return id;
-	};
+              if (scope.chatWindowSettings.EnableVideo) {
+                scope.client.markChatAsVideoSupported();
+              }
 
-	/**
-	 * Sets the email address to send a transcript of the chat to after the chat has ended.
-	 * @param {string} emailAddress - The email address
-	 */
-	this.setEmailTranscript = function(emailAddress) {
-		this.client.setEmailTranscript(emailAddress);
-	};
+              scope.viewManager.hideBusy();
+              if (chatData.PreChat) {
+                scope.viewManager.showForm('api#prechat#intro', chatData.PreChat, null, 'api#prechat#start', scope._preChatFormSubmitted);
+              } else if (chatData.UnavailableForm) {
+                displayUnavailableForm(chatData);
+              } else {
+                startAnswerTimeout(chatData.AnswerTimeout);
+                scope.viewManager.showChatForm();
+                displayWaitForOperatorMessage();
+              }
+              result.resolve();
+            })
+            .failure(function (msg) {
+              clearTimeout(confirmIframeLoaded);
+              failure(msg);
+              result.reject();
+            });
+        }
+      });
+    return result;
+  };
 
-	/**
-	 * Should be called when the visitor chooses to cancel their wait in the queue.  This triggers an unavailable email form
-	 * to be displayed.
-	 */
-	this.cancelQueueWait = function() {
-		scope.viewManager.showBusy();
+  /**
+   * Changes the language of the chat window to another language retrieving the language values from the BoldChat server.
+   * @param {string} language - The new language to use.
+   */
+  this.setLanguage = function (language) {
+    scope.viewManager.showBusy();
+    this.client.changeLanguage(language)
+      .success(function (data) {
+        scope.viewManager.hideBusy();
+        if (data.Brandings) {
+          scope.viewManager.setLocalizationValues(data.Brandings, language);
+        }
+        if (data.Departments) {
+          scope.viewManager.changeDepartments(data.Departments, language);
+        }
+      })
+      .failure(failure);
+  };
 
-		scope.client.cancelChat();
-		scope.client.getUnavailableForm()
-			.success(function(data) {
-				scope.viewManager.hideQueueMessage();
-				scope.viewManager.clearOperatorTypers();
-				scope.viewManager.hideBusy();
-				displayUnavailableForm(data);
-			})
-			.failure(failure);
-	};
+  /**
+   * Notify the server that the visitor is currently typing a message.
+   * @param {boolean} isTyping - true if the visitor is currently typeing, false if they are not.
+   */
+  this.setVisitorTyping = function (isTyping) {
+    this.client.visitorTyping(isTyping);
+  };
 
-	/**
-	 * Ends the current chat session, this is ok to call even if the chat has already ended by the operator.  It will initiate the call
-	 * to the server to retrieve the post-chat information if one is configured.
-	 */
-	this.endChat = function() {
-		scope.viewManager.showBusy();
-		scope.viewManager.hideChatInteraction();
+  /**
+   * Send the visitor message to the BoldChat system.
+   * @param {string} message - The visitor message text
+   * @return {string} - Returns the message id assigned to this message. This should be used to reference the message later.
+   */
+  this.addVisitorMessage = function (message) {
+    var id = bc.util.getId();
+    this.client.sendMessage(scope.getVisitorName(), message, id);
+    return id;
+  };
 
-		switch(scope.client.getState()) {
-			case 'error':
-			case 'prechat':
-			case 'postchat':
-			case 'unavailable':
-				scope.client.finishChat();
-				scope.viewManager.closeChat();
-				scope.viewManager.hideForm();
-				break;
-			default:
-				scope.client.finishChat()
-					.success(function(data) {
-						scope._processChatEndData(data);
-					})
-					.failure(function() {
-						scope._processChatEndData();
-					});
-		}
+  /**
+   * Sets the email address to send a transcript of the chat to after the chat has ended.
+   * @param {string} emailAddress - The email address
+   */
+  this.setEmailTranscript = function (emailAddress) {
+    this.client.setEmailTranscript(emailAddress);
+  };
 
-		scope.unsubscribeFromClientEvents();
-	};
+  /**
+   * Should be called when the visitor chooses to cancel their wait in the queue.  This triggers an unavailable email form
+   * to be displayed.
+   */
+  this.cancelQueueWait = function () {
+    scope.viewManager.showBusy();
 
-	/**
-	 * Gets the name of the visitor
-	 * @return {string} - The name of the visitor
-	 */
-	this.getVisitorName = function() {
-		if(!scope.visitorInfo) {
-			scope.visitorInfo = scope.client.getVisitInfo();
-		}
-		if(scope.visitorInfo) {
-			return scope.visitorInfo.first_name || scope.visitorInfo.name || scope.visitorInfo.last_name;
-		}
-		return scope.viewManager.getLocalizedValue('api#generic#you');
-	};
+    scope.client.cancelChat();
+    scope.client.getUnavailableForm()
+      .success(function (data) {
+        scope.viewManager.hideQueueMessage();
+        scope.viewManager.clearOperatorTypers();
+        scope.viewManager.hideBusy();
+        displayUnavailableForm(data);
+      })
+      .failure(failure);
+  };
 
-	/**
-	 * Gets the name of the operator
-	 * @return {string} - The name of the operator
-	 */
-	this.getOperatorName = function() {
-		return scope.viewManager.getLocalizedValue('api#chat#operator');
-	};
+  /**
+   * Ends the current chat session, this is ok to call even if the chat has already ended by the operator.  It will initiate the call
+   * to the server to retrieve the post-chat information if one is configured.
+   */
+  this.endChat = function (force) {
+    scope.viewManager.showBusy();
+    scope.viewManager.hideChatInteraction();
+    scope._clearHeartBeatTimeout();
 
-	/**
-	 * Update chat callback from the server, this checks to see if the chat is answered, and if the chat has ended.
-	 * @param {object} data - The data from the OSS message
-	 * @private
-	 */
-	this._updateChat = function(data) {
-		if(data.Values.Answered || data.Values.Ended) {
-			scope.viewManager.hideStatusMessage();
-		}
-		if(data.Values.Ended) {
-			scope.viewManager.hideChatInteraction();	//TODO: This gets invoked multiple times when a chat is ended... ineffecient
-		}
-	};
+    switch (scope.client.getState()) {
+      case 'error':
+      case 'prechat':
+      case 'postchat':
+      case 'unavailable':
+        scope.client.finishChat();
+        closeChat(force);
+        break;
+      default:
+        scope.client.finishChat()
+          .success(function (data) {
+            scope._processChatEndData(data);
+          })
+          .failure(function () {
+            scope._processChatEndData();
+          });
+    }
 
-	/**
-	 * Updates the operator is typing message
-	 * @param {object} data - The data from the OSS message
-	 * @private
-	 */
-	this._updateTyper = function(data) {
-		if(data.Values.PersonType === bc.PersonType.Operator) {
-			if(data.Values.IsTyping) {
-				scope.viewManager.setOperatorTyping(data.Values.Name || scope.getOperatorName(), data.Values.ImageURL, data.PersonID);
-			} else {
-				scope.viewManager.hideOperatorTyping(data.PersonID);
-			}
-		}
-	};
+    scope.unsubscribeFromClientEvents();
+  };
 
-	/**
-	 * The add message callback from the server. This adds system and operator messages to the history view.
-	 * @param {object} data - The data from the OSS message
-	 * @private
-	 */
-	this._addMessage = function(data) {
-		var avatar = data.Values.ImageURL || scope.client.getPerson(data.Values.PersonID).Avatar;
-		var name = data.Values.Name || scope.client.getPerson(data.Values.PersonID).Name || scope.getOperatorName();
-		scope.viewManager.addOrUpdateMessage(data.MessageID, data.Values.PersonType, name, new Date(data.Values.Created), data.Values.Text, avatar, data.Values.IsReconstitutedMsg, data.Values.OriginalText);
+  /**
+   * Gets the name of the visitor
+   * @return {string} - The name of the visitor
+   */
+  this.getVisitorName = function () {
+    if (!scope.visitorInfo) {
+      scope.visitorInfo = scope.client.getVisitInfo();
+    }
+    if (scope.visitorInfo) {
+      return scope.visitorInfo.first_name || scope.visitorInfo.name || scope.visitorInfo.last_name;
+    }
+    return scope.viewManager.getLocalizedValue('api#generic#you');
+  };
 
-		if(minimizeTimeout) {
-			clearTimeout(minimizeTimeout);
-			minimizeTimeout = null;
-		}
-		var lastMessageId = scope.client.getLastMessageId();
-		if((canAddMinimizeClass && seenLastMessageId !== lastMessageId) || !lastMessageId) {
-			minimizeTimeout = scope.viewManager.notifyMinimizeButton();
-		}
-		canAddMinimizeClass = lastMessageId === data.MessageID;
-		if(canAddMinimizeClass) {
-			seenLastMessageId = lastMessageId;	// This is required as when you refresh the page, the last message is sent twice from the server.
-		}
+  /**
+   * Gets the name of the operator
+   * @return {string} - The name of the operator
+   */
+  this.getOperatorName = function () {
+    return scope.viewManager.getLocalizedValue('api#chat#operator');
+  };
 
-		// Workaround: ensure that activeassist status bar will be hidden immediately when Agent ends Co-Browse session
-		if (!data.Values.IsReconstitutedMsg && data.Values.PersonType === bc.PersonType.System && data.Values.Text && data.Values.Text.indexOf('Co-browse canceled') > -1) {
-			scope.viewManager.hideCancellableMessage();
-		}
-	};
+  /**
+   * Update chat callback from the server, this checks to see if the chat is answered, and if the chat has ended.
+   * @param {object} data - The data from the OSS message
+   * @private
+   */
+  this._updateChat = function (data) {
+    if (scope.videoSessionStatus !== data.Values.VideoSessionStatus) {
+      scope._updateVideoSessionStatusChange(data.Values.VideoSessionStatus);
+    }
+    if (data.Values.Answered || data.Values.Ended) {
+      scope.viewManager.hideStatusMessage();
+    }
+    if (data.Values.Ended) {
+      scope.viewManager.hideChatInteraction();	//TODO: This gets invoked multiple times when a chat is ended... ineffecient
+    }
+  };
 
-	/**
-	 * Shows the auto messages in the chat interface.  This replaces any system messages currently being displayed as well as any existing auto messages.
-	 * @param {object} data - The data from the OSS message
-	 * @private
-	 */
-	this._autoMessage = function(data) {
-		scope.client.chatContainsStatusMessage = true;
-		scope.viewManager.showStatusMessage(data.Text);
-	};
+  /**
+   * Updates the operator is typing message
+   * @param {object} data - The data from the OSS message
+   * @private
+   */
+  this._updateTyper = function (data) {
+    if (data.Values.PersonType === bc.PersonType.Operator) {
+      if (data.Values.IsTyping) {
+        scope.viewManager.setOperatorTyping(data.Values.Name || scope.getOperatorName(), data.Values.ImageURL, data.PersonID);
+      } else {
+        scope.viewManager.hideOperatorTyping(data.PersonID);
+      }
+    }
+  };
 
-	/**
-	 * Handles RemoteControl invitation by showing the confirmation dialog
-	 * @private
-	 */
-	this._showRemoteControlPrompt = function() {
-		var dialogParams = {
-			prompt: scope.viewManager.getLocalizedValue('api#activeassist#prompt'),
-			confirm: scope.viewManager.getLocalizedValue('api#generic#yes'),
-			cancel: scope.viewManager.getLocalizedValue('api#generic#no')
-		};
-		scope.viewManager.showConfirmationDialog(dialogParams, function(confirmed) {
-			if (confirmed) {
-				scope.client.acceptRemoteControl();
-			} else {
-				scope.client.declineRemoteControl();
-			}
-		});
-	};
+  /**
+   * The add message callback from the server. This adds system and operator messages to the history view.
+   * @param {object} data - The data from the OSS message
+   * @private
+   */
+  this._addMessage = function (data) {
+    var avatar = data.Values.ImageURL || scope.client.getPerson(data.Values.PersonID).Avatar;
+    var name = data.Values.Name || scope.client.getPerson(data.Values.PersonID).Name || scope.getOperatorName();
+    scope.viewManager.addOrUpdateMessage(data.MessageID, data.Values.PersonType, name, new Date(data.Values.Created), data.Values.Text, avatar, data.Values.IsReconstitutedMsg, data.Values.OriginalText);
 
-	/**
-	 * Handles Co-Browse invitation by showing the confirmation dialog
-	 * @param {object} data - The data from the OSS message
-	 * @private
-	 */
-	this._showCoBrowsePrompt = function() {
-		var dialogParams = {
-			prompt: scope.viewManager.getLocalizedValue('custom#common#active_assist#active_assist_cobrowse_prompt'),
-			confirm: scope.viewManager.getLocalizedValue('api#generic#yes'),
-			cancel: scope.viewManager.getLocalizedValue('api#generic#no')
-		};
-		scope.viewManager.showConfirmationDialog(dialogParams, function(confirmed) {
-			if (confirmed) {
-				scope.client.acceptActiveAssist();
-				scope._showCoBrowseStatus();
-			} else {
-				scope.client.declineActiveAssist();
-			}
-		});
-	};
+    if (minimizeTimeout) {
+      clearTimeout(minimizeTimeout);
+      minimizeTimeout = null;
+    }
+    var lastMessageId = scope.client.getLastMessageId();
+    if ((canAddMinimizeClass && seenLastMessageId !== lastMessageId) || !lastMessageId) {
+      minimizeTimeout = scope.viewManager.notifyMinimizeButton();
+    }
+    canAddMinimizeClass = lastMessageId === data.MessageID;
+    if (canAddMinimizeClass) {
+      seenLastMessageId = lastMessageId;	// This is required as when you refresh the page, the last message is sent twice from the server.
+    }
 
-	/**
-	 * Presents current Co-Browse status message with "Cancel" button
-	 * @param {object} data - The data from the OSS message
-	 * @private
-	 */
-	this._showCoBrowseStatus = function() {
-		scope.viewManager.showCancellableMessage(scope.viewManager.getLocalizedValue('api#activeassist#message'), scope.viewManager.getLocalizedValue('api#generic#cancel'), function() {
-			scope.client.cancelActiveAssist();
-			scope.viewManager.hideCancellableMessage();
-		});
-	};
+    // Workaround: ensure that activeassist status bar will be hidden immediately when Agent ends Co-Browse session
+    if (!data.Values.IsReconstitutedMsg && data.Values.PersonType === bc.PersonType.System && data.Values.Text && data.Values.Text.indexOf('Co-browse canceled') > -1) {
+      scope.viewManager.hideCancellableMessage();
+    }
+  };
 
-	/**
-	 * Updates the busy message.
-	 * @param {object} data - The data from the OSS message
-	 * @private
-	 */
-	this._updateBusyQueue = function(data) {
-		queuePosition = data.Position;
-		if(data.Position <= 0) {
-			scope.viewManager.hideQueueMessage();
-		} else if(data && data.Position && data.Position > 0) {
-			scope.viewManager.showOrUpdateQueueMessage(data.Position, data.UnavailableFormEnabled);
-		}
-		displayWaitForOperatorMessage();
-	};
+  /**
+   * Shows the auto messages in the chat interface.  This replaces any system messages currently being displayed as well as any existing auto messages.
+   * @param {object} data - The data from the OSS message
+   * @private
+   */
+  this._autoMessage = function (data) {
+    scope.client.chatContainsStatusMessage = true;
+    scope.viewManager.showStatusMessage(data.Text, 'message-type-auto');
+  };
 
-	/**
-	 * Updates the visitor information with the values from the pre-chat form is applicable
-	 * @param {VisitorInfo} [visitorInfo={}] - An object containing information about the visitor. This is typically generated by BoldChat's visitor monitoring code.
-	 * @param {string} visitorInfo.[reference] - Optional parameter
-	 * @param {string} visitorInfo.[information] - Optional parameter
-	 * @param {string} visitorInfo.[name] - Optional parameter
-	 * @param {string} visitorInfo.[phone] - Optional parameter
-	 * @param {string} visitorInfo.[email] - Optional parameter
-	 */
-	var updateVisitorInfo = function(visitorInfo) {
-		if(visitorInfo.name) {
-			scope.visitorInfo.name = visitorInfo.name;
-		} else if(visitorInfo.first_name) {
-			scope.visitorInfo.name = visitorInfo.first_name;
-		}
-		if(visitorInfo.last_name) {
-			scope.visitorInfo.last_name = visitorInfo.last_name;
-		}
-		if(visitorInfo.email) {
-			scope.visitorInfo.email = visitorInfo.email;
-		}
-		if(visitorInfo.information) {
-			scope.visitorInfo.information = visitorInfo.information;
-		}
-		if(visitorInfo.initial_question) {
-			scope.visitorInfo.initial_question = visitorInfo.initial_question;
-		}
-		if(visitorInfo.language) {
-			scope.visitorInfo.language = visitorInfo.language;
-		}
-		if(visitorInfo.phone) {
-			scope.visitorInfo.phone = visitorInfo.phone;
-		}
-		scope.client.updateVisitInfo(scope.visitorInfo);
-	};
+  /**
+   * Handles RemoteControl invitation by showing the confirmation dialog
+   * @private
+   */
+  this._showRemoteControlPrompt = function () {
+    var dialogParams = {
+      prompt: scope.viewManager.getLocalizedValue('api#activeassist#prompt'),
+      confirm: scope.viewManager.getLocalizedValue('api#generic#yes'),
+      cancel: scope.viewManager.getLocalizedValue('api#generic#no')
+    };
+    scope.viewManager.showConfirmationDialog(dialogParams, function (confirmed) {
+      if (confirmed) {
+        scope.client.acceptRemoteControl();
+      } else {
+        scope.client.declineRemoteControl();
+      }
+    });
+  };
 
-	/**
-	 * Called when a pre-chat form is submitted. A successful return call signals the start of an active chat session with an operator (or in a queue).
-	 * @param {object} data - The form data in JSON format.
-	 * @private
-	 */
-	this._preChatFormSubmitted = function(data) {
-		scope.viewManager.hideForm();
-		scope.viewManager.showBusy();
+  /**
+   * Handles incoming video call by showing the confirmation dialog
+   * @private
+   */
+  this._showIncomingVideoPrompt = function () {
+    var dialogParams = {
+      prompt: scope.viewManager.getLocalizedValue('custom#common#miscellaneous#video_prompt'),
+      confirm: scope.viewManager.getLocalizedValue('custom#common#buttons#video_accept_button'),
+      cancel: scope.viewManager.getLocalizedValue('custom#common#buttons#video_decline_button')
+    };
+    scope.viewManager.showConfirmationDialog(dialogParams, function (confirmed) {
+      if (confirmed) {
+        scope.client.acceptVideoCall();
+      } else {
+        scope.client.declineVideoCall();
+      }
+    });
+  };
 
-		updateVisitorInfo(data);
-		scope.client.submitPreChat(data)
-			.success(function(response) {
-				scope.viewManager.hideBusy();
-				if(response.UnavailableReason) {
-					displayUnavailableForm(response);
-				} else {
-					startAnswerTimeout(response.AnswerTimeout);
-					scope.viewManager.showChatForm();
-					displayWaitForOperatorMessage();
-				}
-			})
-			.failure(failure);
-	};
+  /**
+   * Handles Co-Browse invitation by showing the confirmation dialog
+   * @param {object} data - The data from the OSS message
+   * @private
+   */
+  this._showCoBrowsePrompt = function () {
+    var dialogParams = {
+      prompt: scope.viewManager.getLocalizedValue('custom#common#active_assist#active_assist_cobrowse_prompt'),
+      confirm: scope.viewManager.getLocalizedValue('api#generic#yes'),
+      cancel: scope.viewManager.getLocalizedValue('api#generic#no')
+    };
+    scope.viewManager.showConfirmationDialog(dialogParams, function (confirmed) {
+      if (confirmed) {
+        scope.client.acceptActiveAssist();
+        scope._showCoBrowseStatus();
+      } else {
+        scope.client.declineActiveAssist();
+      }
+    });
+  };
 
-	this._postChatFormSubmitted = function(data) {
-		scope.viewManager.hideForm();
-		scope.viewManager.showBusy();
-		scope.viewManager.hideCloseButton();
+  /**
+   * Presents current Co-Browse status message with "Cancel" button
+   * @param {object} data - The data from the OSS message
+   * @private
+   */
+  this._showCoBrowseStatus = function () {
+    scope.viewManager.showCancellableMessage(scope.viewManager.getLocalizedValue('api#activeassist#message'), scope.viewManager.getLocalizedValue('api#generic#cancel'), function () {
+      scope.client.cancelActiveAssist();
+      scope.viewManager.hideCancellableMessage();
+    });
+  };
 
-		var formDef = null;
-		scope.client.submitPostChat(data)
-			.success(function() {
-				'use strict';
-				var itemsWithData = 0;
-				for(var prop in data) {
-					if(data[prop] && data.hasOwnProperty(prop)) {
-						itemsWithData++;
-					}
-				}
-				var titleKey = 'api#chat#ended';
-				if(data.email && itemsWithData === 1) {
-					titleKey = 'api#postchat#emailed';
-					formDef = {Fields: [{'Key': 'email', 'Type': 'label', 'Value': data.email}]};
-				} else if(data.email && itemsWithData > 1) {
-					titleKey = 'api#postchat#submitted_and_emailed';
-					formDef = {Fields: [{'Key': 'email', 'Type': 'label', 'Value': data.email}]};
-				} else if(itemsWithData > 0) {
-					titleKey = 'api#postchat#submitted';
-				}
-				scope.viewManager.hideBusy();
-				scope.viewManager.showForm(titleKey, formDef, null, 'api#chat#close', function() {
-					scope.viewManager.closeChat();
-					scope.viewManager.hideForm();
-				});
-			})
-			.failure(function(msg) {
-				'use strict';
-				failure(msg);
-				scope.viewManager.closeChat();
-				scope.viewManager.hideForm();
-			});
-	};
+  /**
+   * Updates message delivery status for the message
+   * @param {number} messageId - the message id for the failing message
+   * @private
+   */
+  this._sendMessageFailure = function (messageId) {
+    scope.viewManager.messageDelivered(messageId, false);
+  };
 
-	/**
-	 * Called when an unavailable email form is submitted. This signals the end of the chat session.
-	 * @param {object} data - The form data in JSON format.
-	 * @private
-	 */
-	this._unavailableFormSubmitted = function(data) {
-		scope.viewManager.hideForm();
-		if(data.email && data.subject && data.body) {
-			scope.client.submitUnavailableEmail(data.email, data.subject, data.body)
-				.success(function() {
-					scope.viewManager.hideForm();
-					scope.viewManager.hideCloseButton();
-					scope.viewManager.showForm('api#unavailable#emailed', null, null, 'api#chat#close', function() {
-						'use strict';
-						scope.viewManager.closeChat();
-						scope.viewManager.hideForm();
-					});
-				})
-				.failure(function(msg) {
-					'use strict';
-					failure(msg);
-					scope.viewManager.closeChat();
-					scope.viewManager.hideForm();
-				});
-		} else {
-			scope.viewManager.closeChat();
-		}
-	};
+  /**
+   * Updates message delivery status for the message
+   * @param {number} messageId - the message id for the delivered message
+   * @private
+   */
+  this._sendMessageSuccess = function (messageId) {
+    scope.lastSuccesfullInteraction = new Date();
+    scope.viewManager.messageDelivered(messageId, true);
+  };
 
-	this._chatEnded = function(data) {
-		bc.util.log('session:this_chatEnded');
-		scope.viewManager.hideChatInteraction();
-		scope._processChatEndData(data);
-	};
+  /**
+   * Updates the busy message.
+   * @param {object} data - The data from the OSS message
+   * @private
+   */
+  this._updateBusyQueue = function (data) {
+    queuePosition = data.Position;
+    if (data.Position <= 0) {
+      scope.viewManager.hideQueueMessage();
+    } else if (data && data.Position && data.Position > 0) {
+      scope.viewManager.showOrUpdateQueueMessage(data.Position, data.UnavailableFormEnabled, data.ShowWaitTime, data.WaitTime, data.WaitTimeUnit);
+    }
+    displayWaitForOperatorMessage();
+  };
 
-	this._chatEndedByOpSubmitted = function(data) {
-		//hide operatorEndedMessage
-		scope.viewManager.hideForm();
-		scope.client.getPostChatFormIfAvail();
-	};
+  /**
+   * Updates the visitor information with the values from the pre-chat form is applicable
+   * @param {VisitorInfo} [visitorInfo={}] - An object containing information about the visitor. This is typically generated by BoldChat's visitor monitoring code.
+   * @param {string} visitorInfo.[reference] - Optional parameter
+   * @param {string} visitorInfo.[information] - Optional parameter
+   * @param {string} visitorInfo.[name] - Optional parameter
+   * @param {string} visitorInfo.[phone] - Optional parameter
+   * @param {string} visitorInfo.[email] - Optional parameter
+   */
+  var updateVisitorInfo = function (visitorInfo) {
+    if (visitorInfo.name) {
+      scope.visitorInfo.name = visitorInfo.name;
+    } else if (visitorInfo.first_name) {
+      scope.visitorInfo.name = visitorInfo.first_name;
+    }
+    if (visitorInfo.last_name) {
+      scope.visitorInfo.last_name = visitorInfo.last_name;
+    }
+    if (visitorInfo.email) {
+      scope.visitorInfo.email = visitorInfo.email;
+    }
+    if (visitorInfo.information) {
+      scope.visitorInfo.information = visitorInfo.information;
+    }
+    if (visitorInfo.initial_question) {
+      scope.visitorInfo.initial_question = visitorInfo.initial_question;
+    }
+    if (visitorInfo.language) {
+      scope.visitorInfo.language = visitorInfo.language;
+    }
+    if (visitorInfo.phone) {
+      scope.visitorInfo.phone = visitorInfo.phone;
+    }
+    scope.client.updateVisitInfo(scope.visitorInfo);
+  };
 
-	this._chatEndedByOp = function(data) {
-		bc.util.log('session:this_chatEndeByOp');
-		scope.viewManager.hideChatInteraction();
-		scope.viewManager.showForm('api#chat#operator_ended', null, null, 'api#chat#close', scope._chatEndedByOpSubmitted, null, null, true);
-	};
+  this._updateVideoSessionStatusChange = function (videoSessionStatus) {
+    if (this.videoSessionStatus === videoSessionStatusEnum.InitiatedByOperator) {
+      scope.viewManager.hideConfirmationDialog();
+    }
+    if (videoSessionStatus === videoSessionStatusEnum.InitiatedByOperator) {
+      scope._showIncomingVideoPrompt();
+    }
 
-	this._processChatEndData = function(data) {
-		scope.viewManager.hideBusy();
-		if(data && data.PostChat) {
-			//TODO: The intro is being displayed even though the form may be not be applicable (not enough chat interaction to qualify for post-chat form)
-			var introKey = 'api#postchat#intro';
-			var topFieldLocKey = 'api#email#transcript';
-			if(data.PostChat.Fields && data.PostChat.Fields.length === 1 && data.PostChat.Fields[0].Key && data.PostChat.Fields[0].Key === 'email') {
-				introKey = 'api#email#transcript';
-				topFieldLocKey = null;
-			}
-			scope.viewManager.showForm(introKey, data.PostChat, null, 'api#postchat#done', scope._postChatFormSubmitted, null, topFieldLocKey, true);
+    this.videoSessionStatus = videoSessionStatus;
+  };
 
-		} else {
-			scope.viewManager.showForm('api#chat#ended', null, null, 'api#chat#close', function() {
-				scope.viewManager.closeChat();
-				scope.viewManager.hideForm();
-			}, null, null, true);
-		}
-	};
+  /**
+   * Called when a pre-chat form is submitted. A successful return call signals the start of an active chat session with an operator (or in a queue).
+   * @param {object} data - The form data in JSON format.
+   * @private
+   */
+  this._preChatFormSubmitted = function (data) {
+    scope.viewManager.hideForm();
+    scope.viewManager.showBusy();
 
-	this.minimizeChat = function() {
-		clearTimeout(minimizeTimeout);
-		scope.viewManager.minimizeChat();
-	};
+    updateVisitorInfo(data);
+    scope.client.submitPreChat(data)
+      .success(function (response) {
+        scope.viewManager.hideBusy();
+        if (response.UnavailableReason) {
+          displayUnavailableForm(response);
+        } else {
+          startAnswerTimeout(response.AnswerTimeout);
+          scope.viewManager.showChatForm();
+          displayWaitForOperatorMessage();
+        }
+      })
+      .failure(failure);
+  };
 
-	this.changeMinimizedStatus = function(isMinimized) {
-		scope.client.changeMinimizedStatus(isMinimized);
-	};
+  this._postChatFormSubmitted = function (data) {
+    scope.viewManager.hideForm();
+    scope.viewManager.showBusy();
+    scope.viewManager.hideCloseButton();
 
-	this.isMinimized = function() {
-		return scope.client.isMinimized();
-	};
+    var formDef = null;
+    scope.client.submitPostChat(data)
+      .success(function () {
+        var itemsWithData = 0;
+        for (var prop in data) {
+          if (data[prop] && Object.prototype.hasOwnProperty.call(data, prop)) {
+            itemsWithData++;
+          }
+        }
+        var titleKey = 'api#chat#ended';
+        if (data.email && itemsWithData === 1) {
+          titleKey = 'api#postchat#emailed';
+          formDef = {Fields: [{'Key': 'email', 'Type': 'label', 'Value': data.email}]};
+        } else if (data.email && itemsWithData > 1) {
+          titleKey = 'api#postchat#submitted_and_emailed';
+          formDef = {Fields: [{'Key': 'email', 'Type': 'label', 'Value': data.email}]};
+        } else if (itemsWithData > 0) {
+          titleKey = 'api#postchat#submitted';
+        }
+        scope.viewManager.hideBusy();
+        scope.viewManager.showForm(titleKey, formDef, null, 'api#chat#close', function () {
+          closeChatAndShutdownConnection();
+        });
+      })
+      .failure(function (msg) {
+        failure(msg);
+        closeChatAndShutdownConnection();
+      });
+  };
 
-	this.subscribeToClientEvents = function() {
-		scope.client.updateChat(scope._updateChat);
-		scope.client.updateTyper(scope._updateTyper);
-		scope.client.autoMessage(scope._autoMessage);
-		scope.client.updateBusy(scope._updateBusyQueue);
-		scope.client.addMessage(scope._addMessage);
-		scope.client.chatEnded(scope._chatEnded);
-		scope.client.chatEndedByOp(scope._chatEndedByOp);
-		scope.client.beginRemoteControl(scope._showRemoteControlPrompt);
-		scope.client.beginActiveAssist(scope._showCoBrowsePrompt);
-		scope.client.resumeActiveAssist(scope._showCoBrowseStatus);
-	};
+  /**
+   * Called when an unavailable email form is submitted. This signals the end of the chat session.
+   * @param {object} data - The form data in JSON format.
+   * @private
+   */
+  this._unavailableFormSubmitted = function (data) {
+    scope.viewManager.hideForm();
+    if (data.email && data.subject && data.body) {
+      scope.client.submitUnavailableEmail(data.email, data.subject, data.body)
+        .success(function () {
+          scope.viewManager.hideForm();
+          scope.viewManager.hideCloseButton();
+          scope.viewManager.showForm('api#unavailable#emailed', null, null, 'api#chat#close', function () {
+            closeChat();
+          });
+        })
+        .failure(function (msg) {
+          failure(msg);
+          closeChat(true);
+        });
+    } else {
+      closeChat(true);
+    }
+  };
 
-	this.unsubscribeFromClientEvents = function() {
-		scope.client.unsubscribe('updateChat', scope._updateChat);
-		scope.client.unsubscribe('updateTyper', scope._updateTyper);
-		scope.client.unsubscribe('autoMessage', scope._autoMessage);
-		scope.client.unsubscribe('updateBusy', scope._updateBusyQueue);
-		scope.client.unsubscribe('addMessage', scope._addMessage);
-		scope.client.unsubscribe('chatEnded', scope._chatEnded);
-		scope.client.unsubscribe('chatEndedByOp', scope._chatEndedByOp);
-		scope.client.unsubscribe('beginRemoteControl', scope._showRemoteControlPrompt);
-		scope.client.unsubscribe('beginActiveAssist', scope._showCoBrowsePrompt);
-		scope.client.unsubscribe('resumeActiveAssist', scope._showCoBrowseStatus);
-	};
+  this._chatEnded = function (data) {
+    bc.util.log('session:this_chatEnded');
+    scope.viewManager.hideChatInteraction();
+    scope._processChatEndData(data);
+    scope.connectionState = 'ended';
+  };
 
-	this.subscribeToClientEvents(this.client);
+  this._chatEndedByOpSubmitted = function () {
+    //hide operatorEndedMessage
+    scope.viewManager.hideForm();
+    scope.client.getPostChatFormIfAvail();
+    scope.connectionState = 'ended';
+  };
+
+  this._chatEndedByOp = function () {
+    bc.util.log('session:this_chatEndeByOp');
+    scope._clearHeartBeatTimeout();
+    scope.viewManager.hideStatusMessage();
+    scope.viewManager.hideChatInteraction();
+    scope.viewManager.showForm('api#chat#operator_ended', null, null, 'api#chat#close', scope._chatEndedByOpSubmitted, null, null, true);
+    scope.connectionState = 'ended';
+  };
+
+  this._processChatEndData = function (data) {
+    scope.viewManager.hideBusy();
+    if (data && data.PostChat) {
+      //TODO: The intro is being displayed even though the form may be not be applicable (not enough chat interaction to qualify for post-chat form)
+      var introKey = 'api#postchat#intro';
+      var topFieldLocKey = 'api#email#transcript';
+      if (data.PostChat.Fields && data.PostChat.Fields.length === 1 && data.PostChat.Fields[0].Key && data.PostChat.Fields[0].Key === 'email') {
+        introKey = 'api#email#transcript';
+        topFieldLocKey = null;
+      }
+      scope.viewManager.showForm(introKey, data.PostChat, null, 'api#postchat#done', scope._postChatFormSubmitted, null, topFieldLocKey, true);
+
+    } else {
+      scope.viewManager.showForm('api#chat#ended', null, null, 'api#chat#close', function () {
+        closeChat();
+      }, null, null, true);
+    }
+  };
+
+  this.minimizeChat = function () {
+    clearTimeout(minimizeTimeout);
+    scope.viewManager.minimizeChat();
+  };
+
+  this.changeMinimizedStatus = function (isMinimized) {
+    scope.client.changeMinimizedStatus(isMinimized);
+  };
+
+  this.isMinimized = function () {
+    return scope.client.isMinimized();
+  };
+
+  this._clearHeartBeatTimeout = function () {
+    if (scope.heartbeatTimeout) {
+      clearTimeout(scope.heartbeatTimeout);
+      scope.heartbeatTimeout = null;
+    }
+  };
+
+  this._heartbeatFail = function () {
+    console.warn('heartbeat FAIL');
+    var reconnectingMessage = scope.viewManager.getLocalizedValue('api#chat#reconnecting') || 'Connection lost. Reconnecting...';
+    scope.viewManager.showStatusMessage('<span style="font-style: italic">' + reconnectingMessage + '</span>', 'message-type-reconnecting');
+    scope.viewManager.hideChatInteraction();
+    scope.connectionState = 'disconnected';
+  };
+
+  this._heartbeat = function () {
+    scope._clearHeartBeatTimeout();
+    scope.heartbeatTimeout = setTimeout(scope._heartbeatFail, waitForHeartbeat);
+    scope.lastSuccesfullInteraction = new Date();
+
+    if (scope.connectionState === 'timeouted' || scope.connectionState === 'ended') {
+      scope.viewManager.hideStatusMessage();
+      return
+    }
+
+    if (scope.connectionState !== 'connected' && scope.connectionState !== 'connecting') {
+      scope.viewManager.hideStatusMessage();
+      scope.viewManager.showChatInteraction();
+      scope.client.fireEvent('connection_re_established');
+      scope.connectionState = 'connected';
+    }
+  };
+
+  this._reconnecting = function () {
+    // scope.connectionState = 'reconnecting'
+  };
+
+  this._reconnected = function () {
+    scope.connectionState = 'reconnected';
+    var now = new Date();
+    var blackout = now.getTime() - scope.lastSuccesfullInteraction.getTime();
+    console.warn("reconnected, outage in ms:", blackout);
+    if (blackout >= scope.client.ClientTimeout * 1000) {
+      scope.viewManager.hideChatInteraction();
+      scope.viewManager.hideStatusMessage();
+      scope.connectionState = 'timeouted';
+    }
+    scope.lastSuccesfullInteraction = now;
+  };
+
+  this._showVideoSession = function (url) {
+    scope.viewManager.showVideoCall(url);
+  };
+
+  this._startChat = function () {
+    scope.connectionState = 'connecting';
+    scope.viewManager.hideStatusMessage();
+  };
+
+  this.subscribeToClientEvents = function () {
+    scope.client.updateChat(scope._updateChat);
+    scope.client.updateTyper(scope._updateTyper);
+    scope.client.autoMessage(scope._autoMessage);
+    scope.client.updateBusy(scope._updateBusyQueue);
+    scope.client.addMessage(scope._addMessage);
+    scope.client.chatEnded(scope._chatEnded);
+    scope.client.chatEndedByOp(scope._chatEndedByOp);
+    scope.client.beginRemoteControl(scope._showRemoteControlPrompt);
+    scope.client.beginActiveAssist(scope._showCoBrowsePrompt);
+    scope.client.resumeActiveAssist(scope._showCoBrowseStatus);
+    scope.client.heartbeat(scope._heartbeat);
+    scope.client.reconnecting(scope._reconnecting);
+    scope.client.reconnected(scope._reconnected);
+    scope.client.sendMessageFailure(scope._sendMessageFailure);
+    scope.client.sendMessageSuccess(scope._sendMessageSuccess);
+    scope.client.videoSessionStarted(scope._showVideoSession);
+  };
+
+  this.unsubscribeFromClientEvents = function () {
+    scope.client.unsubscribe('updateChat', scope._updateChat);
+    scope.client.unsubscribe('updateTyper', scope._updateTyper);
+    scope.client.unsubscribe('autoMessage', scope._autoMessage);
+    scope.client.unsubscribe('updateBusy', scope._updateBusyQueue);
+    scope.client.unsubscribe('addMessage', scope._addMessage);
+    scope.client.unsubscribe('chatEnded', scope._chatEnded);
+    scope.client.unsubscribe('chatEndedByOp', scope._chatEndedByOp);
+    scope.client.unsubscribe('beginRemoteControl', scope._showRemoteControlPrompt);
+    scope.client.unsubscribe('beginActiveAssist', scope._showCoBrowsePrompt);
+    scope.client.unsubscribe('resumeActiveAssist', scope._showCoBrowseStatus);
+    scope.client.unsubscribe('heartbeat', scope._heartbeat);
+    scope.client.unsubscribe('reconnecting', scope._reconnecting);
+    scope.client.unsubscribe('reconnected', scope._reconnected);
+    scope.client.unsubscribe('sendMessageFailure', scope._sendMessageFailure);
+    scope.client.unsubscribe('sendMessageSuccess', scope._sendMessageSuccess);
+    scope.client.unsubscribe('videoSessionStarted', scope._showVideoSession);
+  };
+
+  this.destroy = function () {
+    closeChatAndShutdownConnection(true);
+    scope.client.deleteSessionData();
+    scope._clearHeartBeatTimeout();
+  };
+
+  function closeChat(force) {
+    scope.viewManager.closeChat(force);
+    scope.viewManager.hideForm();
+  }
+
+  function closeChatAndShutdownConnection(force) {
+    closeChat(force);
+    scope.client.shutdown();
+  }
+
+  this.subscribeToClientEvents();
 };
