@@ -12,12 +12,17 @@ var nameJsBoldchat = 'boldchat';
 var fs = require('fs');
 var gulp = require('gulp');
 var argv = require('yargs').argv;
-var req = require('gulp-load-plugins')({lazy: true});	//lazy loads the gulp- plugins when invoked
+var req = require('gulp-load-plugins')({
+  lazy: true,
+  postRequireTransforms: {
+    print: function(print) { return print.default }
+  }
+});	//lazy loads the gulp- plugins when invoked
 var config = require('./gulpfile.config')();
 var del = require('del');
-var karma = require('karma').server;
+var karmaServer = require('karma').Server;
 var path = require('path');
-var runSequence = require('run-sequence');
+var series = require('gulp').series;
 
 function log(msg) {
 	if(typeof(msg) === 'object') {
@@ -143,21 +148,21 @@ gulp.task('clean-index-html', function(cb) {
 	return clean([config.out_dest + '**/*.html', '!' + config.out_dest + '**/popup.html'], cb);
 });
 
-gulp.task('inject-index-html', ['clean-index-html'], function() {
+gulp.task('inject-index-html', series('clean-index-html', function() {
 	log('Injecting JS and CSS for index files');
 
 	return injectFiles('index', false, false);
-});
+}));
 
 gulp.task('clean-popup-html', function(cb) {
 	return clean(config.out_dest + '**/popup.html', cb);
 });
 
-gulp.task('inject-popup-html', ['clean-popup-html'], function() {
+gulp.task('inject-popup-html', series('clean-popup-html', function() {
 	log('Injecting JS and CSS for popup files');
 
 	return injectFiles('popup', false, true, false, '../..');
-});
+}));
 
 
 //***** Begin Gulp Tasks *****//
@@ -184,19 +189,19 @@ gulp.task('clean-js-doc', function(cb) {
 	return clean(config.doc_dest, cb);
 });
 
-gulp.task('js-doc', ['clean-js-doc'], function(cb) {
+gulp.task('js-doc', series('clean-js-doc', function(cb) {
 	log('Creating JSDocs');
 
 	return gulp.src(config.js_all)
 		.pipe(req.if(argv.verbose, req.print()))
 		.pipe(req.jsdoc3(config.js_doc, cb));
-});
+}));
 
 gulp.task('test', function(done) {
-	karma.start({
+	return new karmaServer({
 		configFile: path.join(__dirname, '/karma.conf.js'),
 		singleRun: true
-	}, done);
+	}, done).start();
 });
 
 gulp.task('nightwatch:chrome', function() {
@@ -242,8 +247,6 @@ gulp.task('copy-root-files', function() {
 		.pipe(gulp.dest(config.out_dest + 'src/'));
 });
 
-gulp.task('integration', ['nightwatch:chrome']);
+gulp.task('integration', series('nightwatch:chrome'));
 
-gulp.task('create-final-build', function(cb) {
-	runSequence('clean', 'copy-source', ['scss', 'copy-root-files'], cb);
-});
+gulp.task('create-final-build', series('clean', 'copy-source', 'scss', 'copy-root-files'));
