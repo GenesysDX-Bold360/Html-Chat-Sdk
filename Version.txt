@@ -2,6 +2,11 @@ Version 1.8
     * Support video chat and remote control
     * Update company logo
 
+Version 1.6
+    * Fix long value generation
+    * Improved 'enter' key handling on Pre/Post Chat forms
+    * Removed getChatAvailability time limit constraint 
+
 Version 1.5
 	* Simplify build process by removing the zipped themes folder. Now, just simply copy the src folder to where you want to host the application.
 
