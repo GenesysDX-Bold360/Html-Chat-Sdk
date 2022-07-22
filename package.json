@@ -9,8 +9,6 @@
     "integration": "gulp integration",
     "preinstall": "npm prune",
     "test": "gulp test",
-    "test:ci": "gulp test --ciRun",
-    "test:jenkins": "gulp test --jenkins",
     "zips:dev": "gulp zip-files",
     "zips:prod": "gulp zip-files --prod --min --minhtml",
     "lint": "eslint --ext .js src/scripts/"

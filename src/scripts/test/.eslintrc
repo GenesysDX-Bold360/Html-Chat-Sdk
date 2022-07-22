@@ -1,0 +1,21 @@
+{
+  "plugins": [
+    "es5"
+  ],
+  "root": true,
+  "extends": [
+    "eslint:recommended",
+    "plugin:es5/no-es2016"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 8,
+    "sourceType": "module"
+  },
+  "env": {
+    "browser": true,
+    "jasmine": true
+  },
+  "globals": {
+    "Promise": "readonly"
+  }
+}
