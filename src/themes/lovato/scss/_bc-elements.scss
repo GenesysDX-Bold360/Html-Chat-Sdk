@@ -16,13 +16,6 @@
     @include bc-box-sizing;
 }
 
-#bc-chat input[type='radio'] {
-  width: auto;
-  height: auto;
-  margin: 0 5px 0 0;
-  vertical-align: middle;
-}
-
 #bc-chat input, #bc-chat textarea, #bc-chat button {
     @include bc-transition(all ease 300ms);
 }
@@ -30,10 +23,6 @@
 #bc-chat input:focus,
 #bc-chat textarea:focus {
     border-color: $bc-color-theme-one;
-}
-
-.bc-input-radio-row {
-  padding: 3px 0;
 }
 
 div.bc-input-placeholder > input.bc-not-empty + label,
